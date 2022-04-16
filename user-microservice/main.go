@@ -25,17 +25,16 @@ func main() {
 	defer server.CloseTracer()
 	defer server.CloseDB()
 
-	/*
-		router.HandleFunc("/post/", server.createPostHandler).Methods("POST")
-		router.HandleFunc("/post/", server.getAllPostsHandler).Methods("GET")
-		router.HandleFunc("/post/{id:[0-9]+}/", server.getPostHandler).Methods("GET")
-		router.HandleFunc("/post/{id:[0-9]+}/", server.deletePostHandler).Methods("DELETE")
-	*/
+	router.HandleFunc("/users/{id}", server.getUserHandler).Methods("GET")
+	router.HandleFunc("/users", server.getAllUsersHandler).Methods("GET")
+	router.HandleFunc("/users", server.createUserHandler).Methods("POST")
+	router.HandleFunc("/users/{id}", server.updateUserHandler).Methods("PUT")
+	router.HandleFunc("/users/{id}", server.deleteUserHandler).Methods("DELETE")
 
-	// start server
+	// start userServer
 	srv := &http.Server{Addr: "0.0.0.0:8000", Handler: router}
 	go func() {
-		log.Println("server starting")
+		log.Println("userServer starting")
 		if err := srv.ListenAndServe(); err != nil {
 			if err != http.ErrServerClosed {
 				log.Fatal(err)
@@ -47,7 +46,7 @@ func main() {
 
 	log.Println("service shutting down ...")
 
-	// gracefully stop server
+	// gracefully stop userServer
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -55,5 +54,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("server stopped")
+	log.Println("userServer stopped")
 }

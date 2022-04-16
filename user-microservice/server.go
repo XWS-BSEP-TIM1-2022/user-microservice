@@ -3,14 +3,17 @@ package main
 import (
 	"github.com/milossimic/rest/tracer"
 	"github.com/opentracing/opentracing-go"
+	"go.mongodb.org/mongo-driver/mongo"
 	"io"
 	"user-microservice/database"
 )
 
 type userServer struct {
-	databaseClient *database.Database
-	tracer         opentracing.Tracer
-	closer         io.Closer
+	databaseClient       *database.Database
+	userCollection       *mongo.Collection
+	experienceCollection *mongo.Collection
+	tracer               opentracing.Tracer
+	closer               io.Closer
 }
 
 const name = "user_service"
@@ -24,9 +27,11 @@ func NewUserServer() (*userServer, error) {
 	tracer, closer := tracer.Init(name)
 	opentracing.SetGlobalTracer(tracer)
 	return &userServer{
-		databaseClient: databaseClient,
-		tracer:         tracer,
-		closer:         closer,
+		databaseClient:       databaseClient,
+		userCollection:       databaseClient.GetUserRepository(),
+		experienceCollection: databaseClient.GetExperienceRepository(),
+		tracer:               tracer,
+		closer:               closer,
 	}, nil
 }
 
