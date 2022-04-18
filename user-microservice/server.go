@@ -18,7 +18,7 @@ type userServer struct {
 
 const name = "user_service"
 
-func NewUserServer() (*userServer, error) {
+func NewUserServer1() (*userServer, error) {
 	databaseClient, err := database.New()
 	if err != nil {
 		return nil, err
