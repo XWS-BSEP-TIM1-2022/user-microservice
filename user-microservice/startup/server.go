@@ -3,8 +3,11 @@ package startup
 import (
 	"fmt"
 	userService "github.com/XWS-BSEP-TIM1-2022/dislinkt/util/proto/user"
+	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/tracer"
+	otgo "github.com/opentracing/opentracing-go"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
+	"io"
 	"log"
 	"net"
 	"user-microservice/application"
@@ -16,12 +19,26 @@ import (
 
 type Server struct {
 	config *config.Config
+	tracer otgo.Tracer
+	closer io.Closer
 }
 
 func NewServer(config *config.Config) *Server {
+	tracer, closer := tracer.Init(config.UserServiceName)
+	otgo.SetGlobalTracer(tracer)
 	return &Server{
 		config: config,
+		tracer: tracer,
+		closer: closer,
 	}
+}
+
+func (server *Server) GetTracer() otgo.Tracer {
+	return server.tracer
+}
+
+func (server *Server) GetCloser() io.Closer {
+	return server.closer
 }
 
 func (server *Server) Start() {

@@ -2,6 +2,7 @@ package persistance
 
 import (
 	"context"
+	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/tracer"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,17 +25,29 @@ func NewUserMongoDBStore(client *mongo.Client) model.UserStore {
 	}
 }
 
-func (store *UserMongoDBStore) Get(id primitive.ObjectID) (user *model.User, err error) {
+func (store *UserMongoDBStore) Get(ctx context.Context, id primitive.ObjectID) (user *model.User, err error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "Get")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
 	filter := bson.M{"_id": id}
-	return store.filterOne(filter)
+	return store.filterOne(ctx, filter)
 }
 
-func (store *UserMongoDBStore) GetAll() ([]*model.User, error) {
+func (store *UserMongoDBStore) GetAll(ctx context.Context) ([]*model.User, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "GetAll")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
 	filter := bson.D{{}}
-	return store.filter(filter)
+	return store.filter(ctx, filter)
 }
 
-func (store *UserMongoDBStore) Create(user *model.User) (*model.User, error) {
+func (store *UserMongoDBStore) Create(ctx context.Context, user *model.User) (*model.User, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "Create")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
 	result, err := store.users.InsertOne(context.TODO(), user)
 	if err != nil {
 		return nil, err
@@ -43,7 +56,11 @@ func (store *UserMongoDBStore) Create(user *model.User) (*model.User, error) {
 	return user, nil
 }
 
-func (store *UserMongoDBStore) Update(userId primitive.ObjectID, user *model.User) (*model.User, error) {
+func (store *UserMongoDBStore) Update(ctx context.Context, userId primitive.ObjectID, user *model.User) (*model.User, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "Update")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
 	updatedUser := bson.M{
 		"$set": user,
 	}
@@ -56,7 +73,11 @@ func (store *UserMongoDBStore) Update(userId primitive.ObjectID, user *model.Use
 	return user, nil
 }
 
-func (store *UserMongoDBStore) Delete(id primitive.ObjectID) error {
+func (store *UserMongoDBStore) Delete(ctx context.Context, id primitive.ObjectID) error {
+	span := tracer.StartSpanFromContextMetadata(ctx, "Delete")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
 	filter := bson.M{"_id": id}
 	_, err := store.users.DeleteOne(context.TODO(), filter)
 	if err != nil {
@@ -65,27 +86,43 @@ func (store *UserMongoDBStore) Delete(id primitive.ObjectID) error {
 	return nil
 }
 
-func (store *UserMongoDBStore) DeleteAll() {
+func (store *UserMongoDBStore) DeleteAll(ctx context.Context) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "DeleteAll")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
 	store.users.DeleteMany(context.TODO(), bson.D{{}})
 }
 
-func (store *UserMongoDBStore) filter(filter interface{}) ([]*model.User, error) {
+func (store *UserMongoDBStore) filter(ctx context.Context, filter interface{}) ([]*model.User, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "filter")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
 	cursor, err := store.users.Find(context.TODO(), filter)
 	defer cursor.Close(context.TODO())
 
 	if err != nil {
 		return nil, err
 	}
-	return decode(cursor)
+	return decode(ctx, cursor)
 }
 
-func (store *UserMongoDBStore) filterOne(filter interface{}) (product *model.User, err error) {
+func (store *UserMongoDBStore) filterOne(ctx context.Context, filter interface{}) (product *model.User, err error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "filterOne")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
 	result := store.users.FindOne(context.TODO(), filter)
 	err = result.Decode(&product)
 	return
 }
 
-func decode(cursor *mongo.Cursor) (users []*model.User, err error) {
+func decode(ctx context.Context, cursor *mongo.Cursor) (users []*model.User, err error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "decode")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
 	for cursor.Next(context.TODO()) {
 		var user model.User
 		err = cursor.Decode(&user)

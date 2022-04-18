@@ -1,12 +1,15 @@
 package model
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"context"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type UserStore interface {
-	Get(id primitive.ObjectID) (*User, error)
-	GetAll() ([]*User, error)
-	Create(user *User) (*User, error)
-	Update(userId primitive.ObjectID, user *User) (*User, error)
-	Delete(id primitive.ObjectID) error
-	DeleteAll()
+	Get(ctx context.Context, id primitive.ObjectID) (*User, error)
+	GetAll(ctx context.Context) ([]*User, error)
+	Create(ctx context.Context, user *User) (*User, error)
+	Update(ctx context.Context, userId primitive.ObjectID, user *User) (*User, error)
+	Delete(ctx context.Context, id primitive.ObjectID) error
+	DeleteAll(ctx context.Context)
 }
