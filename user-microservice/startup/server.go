@@ -64,11 +64,11 @@ func (server *Server) startGrpcServer(userHandler *api.UserHandler) {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer()
+	log.Println(fmt.Sprintf("started grpc server on localhost:%s", server.config.Port))
 	userService.RegisterUserServiceServer(grpcServer, userHandler)
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
-	log.Println("started")
 }
 
 func (server *Server) initUserStore(client *mongo.Client) model.UserStore {
