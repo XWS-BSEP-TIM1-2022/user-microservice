@@ -26,7 +26,7 @@ func NewUserMongoDBStore(client *mongo.Client) model.UserStore {
 }
 
 func (store *UserMongoDBStore) Get(ctx context.Context, id primitive.ObjectID) (user *model.User, err error) {
-	span := tracer.StartSpanFromContextMetadata(ctx, "Get")
+	span := tracer.StartSpanFromContext(ctx, "Get")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
@@ -35,7 +35,7 @@ func (store *UserMongoDBStore) Get(ctx context.Context, id primitive.ObjectID) (
 }
 
 func (store *UserMongoDBStore) GetAll(ctx context.Context) ([]*model.User, error) {
-	span := tracer.StartSpanFromContextMetadata(ctx, "GetAll")
+	span := tracer.StartSpanFromContext(ctx, "GetAll")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
@@ -44,7 +44,7 @@ func (store *UserMongoDBStore) GetAll(ctx context.Context) ([]*model.User, error
 }
 
 func (store *UserMongoDBStore) Create(ctx context.Context, user *model.User) (*model.User, error) {
-	span := tracer.StartSpanFromContextMetadata(ctx, "Create")
+	span := tracer.StartSpanFromContext(ctx, "Create")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
@@ -57,7 +57,7 @@ func (store *UserMongoDBStore) Create(ctx context.Context, user *model.User) (*m
 }
 
 func (store *UserMongoDBStore) Update(ctx context.Context, userId primitive.ObjectID, user *model.User) (*model.User, error) {
-	span := tracer.StartSpanFromContextMetadata(ctx, "Update")
+	span := tracer.StartSpanFromContext(ctx, "Update")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
@@ -74,7 +74,7 @@ func (store *UserMongoDBStore) Update(ctx context.Context, userId primitive.Obje
 }
 
 func (store *UserMongoDBStore) Delete(ctx context.Context, id primitive.ObjectID) error {
-	span := tracer.StartSpanFromContextMetadata(ctx, "Delete")
+	span := tracer.StartSpanFromContext(ctx, "Delete")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
@@ -87,7 +87,7 @@ func (store *UserMongoDBStore) Delete(ctx context.Context, id primitive.ObjectID
 }
 
 func (store *UserMongoDBStore) DeleteAll(ctx context.Context) {
-	span := tracer.StartSpanFromContextMetadata(ctx, "DeleteAll")
+	span := tracer.StartSpanFromContext(ctx, "DeleteAll")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
@@ -95,7 +95,7 @@ func (store *UserMongoDBStore) DeleteAll(ctx context.Context) {
 }
 
 func (store *UserMongoDBStore) filter(ctx context.Context, filter interface{}) ([]*model.User, error) {
-	span := tracer.StartSpanFromContextMetadata(ctx, "filter")
+	span := tracer.StartSpanFromContext(ctx, "filter")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
@@ -109,7 +109,7 @@ func (store *UserMongoDBStore) filter(ctx context.Context, filter interface{}) (
 }
 
 func (store *UserMongoDBStore) filterOne(ctx context.Context, filter interface{}) (product *model.User, err error) {
-	span := tracer.StartSpanFromContextMetadata(ctx, "filterOne")
+	span := tracer.StartSpanFromContext(ctx, "filterOne")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
@@ -119,7 +119,7 @@ func (store *UserMongoDBStore) filterOne(ctx context.Context, filter interface{}
 }
 
 func decode(ctx context.Context, cursor *mongo.Cursor) (users []*model.User, err error) {
-	span := tracer.StartSpanFromContextMetadata(ctx, "decode")
+	span := tracer.StartSpanFromContext(ctx, "decode")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
