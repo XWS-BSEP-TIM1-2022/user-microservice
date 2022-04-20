@@ -7,6 +7,8 @@ import (
 
 type UserStore interface {
 	Get(ctx context.Context, id primitive.ObjectID) (*User, error)
+	GetByEmail(ctx context.Context, email string) (*User, error)
+	GetByUsername(ctx context.Context, email string) (*User, error)
 	GetAll(ctx context.Context) ([]*User, error)
 	Create(ctx context.Context, user *User) (*User, error)
 	Update(ctx context.Context, userId primitive.ObjectID, user *User) (*User, error)

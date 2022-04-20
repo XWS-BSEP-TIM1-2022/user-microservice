@@ -2,6 +2,7 @@ package persistance
 
 import (
 	"context"
+	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/tracer"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -34,6 +35,24 @@ func (store *UserMongoDBStore) Get(ctx context.Context, id primitive.ObjectID) (
 	return store.filterOne(ctx, filter)
 }
 
+func (store *UserMongoDBStore) GetByEmail(ctx context.Context, email string) (user *model.User, err error) {
+	span := tracer.StartSpanFromContext(ctx, "GetByEmail")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	filter := bson.M{"email": email}
+	return store.filterOne(ctx, filter)
+}
+
+func (store *UserMongoDBStore) GetByUsername(ctx context.Context, username string) (user *model.User, err error) {
+	span := tracer.StartSpanFromContext(ctx, "GetByUsername")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	filter := bson.M{"username": username}
+	return store.filterOne(ctx, filter)
+}
+
 func (store *UserMongoDBStore) GetAll(ctx context.Context) ([]*model.User, error) {
 	span := tracer.StartSpanFromContext(ctx, "GetAll")
 	defer span.Finish()
@@ -48,6 +67,11 @@ func (store *UserMongoDBStore) Create(ctx context.Context, user *model.User) (*m
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
+	hashedPassword, err := security.BcryptGenerateFromPassword(user.Password)
+	if err != nil {
+		return nil, err
+	}
+	user.Password = hashedPassword
 	result, err := store.users.InsertOne(context.TODO(), user)
 	if err != nil {
 		return nil, err

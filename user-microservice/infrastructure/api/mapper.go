@@ -22,6 +22,7 @@ func mapUser(user *model.User) *userService.User {
 		Skills:      user.Skills,
 		Interests:   user.Interests,
 		Private:     user.Private,
+		Role:        string(user.Role),
 	}
 	return userPb
 }
@@ -37,11 +38,12 @@ func mapUserPb(userPb *userService.User) *model.User {
 		Gender:      userPb.Gender,
 		BirthDate:   t,
 		Username:    userPb.Username,
-		Password:    "",
+		Password:    userPb.Password,
 		Bio:         userPb.Bio,
 		Skills:      userPb.Skills,
 		Interests:   userPb.Interests,
 		Private:     userPb.Private,
+		Role:        model.UserRole(userPb.Role),
 	}
 	return user
 }

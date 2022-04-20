@@ -3,6 +3,7 @@ package startup
 import (
 	"fmt"
 	userService "github.com/XWS-BSEP-TIM1-2022/dislinkt/util/proto/user"
+	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/token"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/tracer"
 	otgo "github.com/opentracing/opentracing-go"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,18 +19,21 @@ import (
 )
 
 type Server struct {
-	config *config.Config
-	tracer otgo.Tracer
-	closer io.Closer
+	config     *config.Config
+	tracer     otgo.Tracer
+	closer     io.Closer
+	jwtManager *token.JwtManager
 }
 
 func NewServer(config *config.Config) *Server {
 	tracer, closer := tracer.Init(config.UserServiceName)
 	otgo.SetGlobalTracer(tracer)
+	jwtManager := token.NewJwtManagerDislinkt(config.ExpiresIn)
 	return &Server{
-		config: config,
-		tracer: tracer,
-		closer: closer,
+		config:     config,
+		tracer:     tracer,
+		closer:     closer,
+		jwtManager: jwtManager,
 	}
 }
 
@@ -45,7 +49,8 @@ func (server *Server) Start() {
 	mongoClient := server.initMongoClient()
 	userStore := server.initUserStore(mongoClient)
 	userService := server.initUserService(userStore)
-	userHandler := server.initUserHandler(userService)
+	authService := server.initAuthService(userStore)
+	userHandler := server.initUserHandler(userService, authService)
 
 	server.startGrpcServer(userHandler)
 }
@@ -87,6 +92,10 @@ func (server *Server) initUserService(store model.UserStore) *application.UserSe
 	return application.NewUserService(store)
 }
 
-func (server *Server) initUserHandler(service *application.UserService) *api.UserHandler {
-	return api.NewUserHandler(service)
+func (server *Server) initUserHandler(service *application.UserService, authService *application.AuthService) *api.UserHandler {
+	return api.NewUserHandler(service, authService)
+}
+
+func (server *Server) initAuthService(store model.UserStore) *application.AuthService {
+	return application.NewAuthService(store, server.jwtManager)
 }

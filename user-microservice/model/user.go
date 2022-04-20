@@ -19,4 +19,12 @@ type User struct {
 	Skills      []string           `json:"skills"`
 	Interests   []string           `json:"interests"`
 	Private     bool               `json:"private"`
+	Role        UserRole
 }
+
+type UserRole string
+
+const (
+	ADMIN UserRole = "ADMIN"
+	USER           = "USER"
+)

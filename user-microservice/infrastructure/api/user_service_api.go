@@ -6,16 +6,19 @@ import (
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/tracer"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"user-microservice/application"
+	"user-microservice/model"
 )
 
 type UserHandler struct {
 	userService.UnimplementedUserServiceServer
-	service *application.UserService
+	service     *application.UserService
+	authService *application.AuthService
 }
 
-func NewUserHandler(service *application.UserService) *UserHandler {
+func NewUserHandler(service *application.UserService, authService *application.AuthService) *UserHandler {
 	return &UserHandler{
-		service: service,
+		service:     service,
+		authService: authService,
 	}
 }
 
@@ -64,7 +67,27 @@ func (handler *UserHandler) PostRequest(ctx context.Context, in *userService.Use
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	user, err := handler.service.Create(ctx, mapUserPb(in.User))
+	userFromRequest := mapUserPb(in.User)
+	userFromRequest.Role = model.USER
+	user, err := handler.service.Create(ctx, userFromRequest)
+	if err != nil {
+		return nil, err
+	}
+	userPb := mapUser(user)
+	response := &userService.GetResponse{
+		User: userPb,
+	}
+	return response, nil
+}
+
+func (handler *UserHandler) PostAdminRequest(ctx context.Context, in *userService.UserRequest) (*userService.GetResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "PostAdminRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	userFromRequest := mapUserPb(in.User)
+	userFromRequest.Role = model.ADMIN
+	user, err := handler.service.Create(ctx, userFromRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -100,4 +123,12 @@ func (handler *UserHandler) DeleteRequest(ctx context.Context, in *userService.U
 	handler.service.Delete(ctx, id)
 	response := &userService.EmptyRequest{}
 	return response, nil
+}
+
+func (handler *UserHandler) LoginRequest(ctx context.Context, in *userService.CredentialsRequest) (*userService.LoginResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "LoginRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	return handler.authService.Login(ctx, in)
 }
