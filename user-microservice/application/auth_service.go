@@ -30,7 +30,7 @@ func (service *AuthService) Login(ctx context.Context, in *userService.Credentia
 		}
 		return &userService.LoginResponse{UserId: user.Id.Hex(), Email: user.Email, Role: string(user.Role), Token: jwtToken}, nil
 	}
-	return nil, errors.New("username or password not match")
+	return nil, errors.New("wrong username or password")
 }
 
 func (service *AuthService) getUser(ctx context.Context, username string) (*model.User, error) {

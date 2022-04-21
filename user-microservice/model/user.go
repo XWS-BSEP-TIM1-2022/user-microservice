@@ -11,7 +11,7 @@ type User struct {
 	Surname     string             `json:"surname"`
 	Email       string             `json:"email"`
 	PhoneNumber string             `json:"phoneNumber"`
-	Gender      bool               `json:"gender"`
+	Gender      Gender             `json:"gender"`
 	BirthDate   time.Time          `json:"birthDate"`
 	Username    string             `json:"username"`
 	Password    string             `json:"password"`
@@ -27,4 +27,11 @@ type UserRole string
 const (
 	ADMIN UserRole = "ADMIN"
 	USER           = "USER"
+)
+
+type Gender int64
+
+const (
+	MALE Gender = iota
+	FEMALE
 )

@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	userService "github.com/XWS-BSEP-TIM1-2022/dislinkt/util/proto/user"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/tracer"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -43,7 +44,7 @@ func (handler *UserHandler) GetRequest(ctx context.Context, in *userService.User
 	return response, nil
 }
 
-func (handler *UserHandler) GetAllRequest(ctx context.Context, in *userService.EmptyRequest) (*userService.GetAllUsers, error) {
+func (handler *UserHandler) GetAllRequest(ctx context.Context, in *userService.EmptyRequest) (*userService.UsersResponse, error) {
 	span := tracer.StartSpanFromContextMetadata(ctx, "GetAllRequest")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
@@ -52,7 +53,7 @@ func (handler *UserHandler) GetAllRequest(ctx context.Context, in *userService.E
 	if err != nil {
 		return nil, err
 	}
-	response := &userService.GetAllUsers{
+	response := &userService.UsersResponse{
 		Users: []*userService.User{},
 	}
 	for _, user := range users {
@@ -66,6 +67,14 @@ func (handler *UserHandler) PostRequest(ctx context.Context, in *userService.Use
 	span := tracer.StartSpanFromContextMetadata(ctx, "PostRequest")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	if in.User.Password != in.User.ConfirmPassword {
+		return nil, errors.New("passwords not match")
+	}
+
+	if in.User.Name != "" && in.User.Surname != "" && in.User.Email != "" && in.User.BirthDate != "" && in.User.Username != "" && in.User.Password != "" {
+		return nil, errors.New("not entered required fields")
+	}
 
 	userFromRequest := mapUserPb(in.User)
 	userFromRequest.Role = model.USER

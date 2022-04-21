@@ -2,6 +2,7 @@ package persistance
 
 import (
 	"context"
+	"errors"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/tracer"
 	"go.mongodb.org/mongo-driver/bson"
@@ -66,6 +67,18 @@ func (store *UserMongoDBStore) Create(ctx context.Context, user *model.User) (*m
 	span := tracer.StartSpanFromContext(ctx, "Create")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	_, err := store.GetByUsername(ctx, user.Username)
+	if err == nil {
+		return nil, errors.New("username already exists")
+	}
+
+	if user.Email != "" {
+		_, err = store.GetByEmail(ctx, user.Email)
+		if err == nil {
+			return nil, errors.New("email already exists")
+		}
+	}
 
 	hashedPassword, err := security.BcryptGenerateFromPassword(user.Password)
 	if err != nil {

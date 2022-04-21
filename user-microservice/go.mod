@@ -6,7 +6,6 @@ replace github.com/XWS-BSEP-TIM1-2022/dislinkt/util => ./../../util
 
 require (
 	github.com/XWS-BSEP-TIM1-2022/dislinkt/util v0.0.0-00010101000000-000000000000
-	github.com/gorilla/mux v1.8.0
 	github.com/milossimic/rest v0.0.0-20210510133911-1cd5187381da
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
