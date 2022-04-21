@@ -2,8 +2,6 @@ package persistance
 
 import (
 	"context"
-	"errors"
-	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/tracer"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -68,23 +66,6 @@ func (store *UserMongoDBStore) Create(ctx context.Context, user *model.User) (*m
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	_, err := store.GetByUsername(ctx, user.Username)
-	if err == nil {
-		return nil, errors.New("username already exists")
-	}
-
-	if user.Email != "" {
-		_, err = store.GetByEmail(ctx, user.Email)
-		if err == nil {
-			return nil, errors.New("email already exists")
-		}
-	}
-
-	hashedPassword, err := security.BcryptGenerateFromPassword(user.Password)
-	if err != nil {
-		return nil, err
-	}
-	user.Password = hashedPassword
 	result, err := store.users.InsertOne(context.TODO(), user)
 	if err != nil {
 		return nil, err
@@ -93,16 +74,24 @@ func (store *UserMongoDBStore) Create(ctx context.Context, user *model.User) (*m
 	return user, nil
 }
 
+//TODO: dodati validacije
 func (store *UserMongoDBStore) Update(ctx context.Context, userId primitive.ObjectID, user *model.User) (*model.User, error) {
 	span := tracer.StartSpanFromContext(ctx, "Update")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
+	existUser, err := store.Get(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	user.Role = existUser.Role
+	user.Password = existUser.Password
+
 	updatedUser := bson.M{
 		"$set": user,
 	}
 	filter := bson.M{"_id": userId}
-	_, err := store.users.UpdateOne(context.TODO(), filter, updatedUser)
+	_, err = store.users.UpdateOne(context.TODO(), filter, updatedUser)
 	if err != nil {
 		return nil, err
 	}
@@ -170,4 +159,13 @@ func decode(ctx context.Context, cursor *mongo.Cursor) (users []*model.User, err
 	}
 	err = cursor.Err()
 	return
+}
+
+func (store *UserMongoDBStore) GetAllWithoutAdmins(ctx context.Context) ([]*model.User, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetAll")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	filter := bson.M{"role": model.USER}
+	return store.filter(ctx, filter)
 }

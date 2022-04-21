@@ -72,7 +72,7 @@ func (handler *UserHandler) PostRequest(ctx context.Context, in *userService.Use
 		return nil, errors.New("passwords not match")
 	}
 
-	if in.User.Name != "" && in.User.Surname != "" && in.User.Email != "" && in.User.BirthDate != "" && in.User.Username != "" && in.User.Password != "" {
+	if in.User.Name == "" || in.User.Surname == "" || in.User.Email == "" || in.User.BirthDate == "" || in.User.Username == "" || in.User.Password == "" {
 		return nil, errors.New("not entered required fields")
 	}
 
@@ -112,6 +112,10 @@ func (handler *UserHandler) UpdateRequest(ctx context.Context, in *userService.U
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
+	if in.User.Name == "" || in.User.Surname == "" || in.User.Email == "" || in.User.BirthDate == "" || in.User.Username == "" || in.User.Password == "" {
+		return nil, errors.New("not entered required fields")
+	}
+
 	id, _ := primitive.ObjectIDFromHex(in.UserId)
 	user, err := handler.service.Update(ctx, id, mapUserPb(in.User))
 	if err != nil {
@@ -140,4 +144,23 @@ func (handler *UserHandler) LoginRequest(ctx context.Context, in *userService.Cr
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
 	return handler.authService.Login(ctx, in)
+}
+
+func (handler *UserHandler) SearchUsersRequest(ctx context.Context, in *userService.SearchRequest) (*userService.UsersResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "SearchUsersRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	users, err := handler.service.Search(ctx, in.SearchParam)
+	if err != nil {
+		return nil, err
+	}
+	response := &userService.UsersResponse{
+		Users: []*userService.User{},
+	}
+	for _, user := range users {
+		current := mapUser(user)
+		response.Users = append(response.Users, current)
+	}
+	return response, nil
 }

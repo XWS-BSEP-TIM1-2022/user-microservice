@@ -14,4 +14,5 @@ type UserStore interface {
 	Update(ctx context.Context, userId primitive.ObjectID, user *User) (*User, error)
 	Delete(ctx context.Context, id primitive.ObjectID) error
 	DeleteAll(ctx context.Context)
+	GetAllWithoutAdmins(ctx context.Context) ([]*User, error)
 }

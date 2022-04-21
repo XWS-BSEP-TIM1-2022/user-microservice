@@ -19,7 +19,7 @@ type User struct {
 	Skills      []string           `json:"skills"`
 	Interests   []string           `json:"interests"`
 	Private     bool               `json:"private"`
-	Role        UserRole
+	Role        UserRole           `json:"role"`
 }
 
 type UserRole string
