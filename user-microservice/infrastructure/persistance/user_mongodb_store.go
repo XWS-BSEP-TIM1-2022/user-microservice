@@ -66,7 +66,7 @@ func (store *UserMongoDBStore) Create(ctx context.Context, user *model.User) (*m
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	result, err := store.users.InsertOne(context.TODO(), user)
+	result, err := store.users.InsertOne(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func (store *UserMongoDBStore) Update(ctx context.Context, userId primitive.Obje
 		"$set": user,
 	}
 	filter := bson.M{"_id": userId}
-	_, err = store.users.UpdateOne(context.TODO(), filter, updatedUser)
+	_, err = store.users.UpdateOne(ctx, filter, updatedUser)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (store *UserMongoDBStore) Delete(ctx context.Context, id primitive.ObjectID
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
 	filter := bson.M{"_id": id}
-	_, err := store.users.DeleteOne(context.TODO(), filter)
+	_, err := store.users.DeleteOne(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (store *UserMongoDBStore) DeleteAll(ctx context.Context) {
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	store.users.DeleteMany(context.TODO(), bson.D{{}})
+	store.users.DeleteMany(ctx, bson.D{{}})
 }
 
 func (store *UserMongoDBStore) filter(ctx context.Context, filter interface{}) ([]*model.User, error) {
@@ -125,8 +125,8 @@ func (store *UserMongoDBStore) filter(ctx context.Context, filter interface{}) (
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	cursor, err := store.users.Find(context.TODO(), filter)
-	defer cursor.Close(context.TODO())
+	cursor, err := store.users.Find(ctx, filter)
+	defer cursor.Close(ctx)
 
 	if err != nil {
 		return nil, err
@@ -139,7 +139,7 @@ func (store *UserMongoDBStore) filterOne(ctx context.Context, filter interface{}
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	result := store.users.FindOne(context.TODO(), filter)
+	result := store.users.FindOne(ctx, filter)
 	err = result.Decode(&product)
 	return
 }
@@ -149,7 +149,7 @@ func decode(ctx context.Context, cursor *mongo.Cursor) (users []*model.User, err
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	for cursor.Next(context.TODO()) {
+	for cursor.Next(ctx) {
 		var user model.User
 		err = cursor.Decode(&user)
 		if err != nil {
