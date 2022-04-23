@@ -164,3 +164,11 @@ func (handler *UserHandler) SearchUsersRequest(ctx context.Context, in *userServ
 	}
 	return response, nil
 }
+
+func (handler *UserHandler) IsUserAuthenticated(ctx context.Context, in *userService.AuthRequest) (*userService.AuthResponse, error) {
+	userRole, err := handler.authService.IsAuthenticated(ctx, in.JwtToken)
+	if err != nil {
+		return nil, err
+	}
+	return &userService.AuthResponse{UserRole: string(userRole)}, nil
+}

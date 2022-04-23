@@ -44,3 +44,15 @@ func (service *AuthService) getUser(ctx context.Context, username string) (*mode
 	}
 	return nil, err
 }
+
+func (service *AuthService) IsAuthenticated(ctx context.Context, jwtToken string) (model.UserRole, error) {
+	ok := service.jwtManager.IsUserAuthorized(jwtToken)
+	if ok != nil {
+		return "", ok
+	}
+	userRole, err := service.jwtManager.GetRoleFromToken(jwtToken)
+	if err != nil {
+		return "", err
+	}
+	return model.UserRole(userRole), nil
+}
