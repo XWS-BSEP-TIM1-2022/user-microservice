@@ -16,7 +16,7 @@ type Config struct {
 func NewConfig() *Config {
 	return &Config{
 		Port:            getEnv("USER_SERVICE_PORT", "8085"),
-		UserDBHost:      getEnv("USER_DB_HOST", "userMicroservice:nuEIm8GkSZbm3MKd@xws.cjx50.mongodb.net/usersDB"),
+		UserDBHost:      getEnv("USER_DB_HOST", "dislinkt:WiYf6BvFmSpJS2Ob@xws.cjx50.mongodb.net/usersDB"),
 		UserDBPort:      getEnv("USER_DB_PORT", ""),
 		UserServiceName: getEnv("USER_SERVICE_NAME", "user_service"),
 		ExpiresIn:       30 * time.Minute,

@@ -8,7 +8,7 @@ require (
 	github.com/XWS-BSEP-TIM1-2022/dislinkt/util v0.0.0-00010101000000-000000000000
 	github.com/opentracing/opentracing-go v1.2.0
 	go.mongodb.org/mongo-driver v1.9.0
-	google.golang.org/grpc v1.45.0
+	google.golang.org/grpc v1.46.0
 )
 
 require (
@@ -30,10 +30,10 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
-	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
+	golang.org/x/net v0.0.0-20220421235706-1d1ef9303861 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	golang.org/x/sys v0.0.0-20220422013727-9388b58f7150 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220317150908-0efb43f6373e // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/genproto v0.0.0-20220422154200-b37d22cd5731 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 )

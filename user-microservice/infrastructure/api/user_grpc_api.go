@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	userService "github.com/XWS-BSEP-TIM1-2022/dislinkt/util/proto/user"
+	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/tracer"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"user-microservice/application"
@@ -171,4 +172,37 @@ func (handler *UserHandler) IsUserAuthenticated(ctx context.Context, in *userSer
 		return nil, err
 	}
 	return &userService.AuthResponse{UserRole: string(userRole)}, nil
+}
+
+func (handler *UserHandler) UpdatePasswordRequest(ctx context.Context, in *userService.NewPasswordRequest) (*userService.GetResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "UpdatePasswordRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id := in.GetNewPassword().GetUserId()
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	user, err := handler.service.Get(ctx, objectId)
+	if err != nil {
+		return nil, err
+	}
+	good, err := handler.authService.CheckPassword(ctx, in.NewPassword.Password, user.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Password, _ = security.BcryptGenerateFromPassword(in.NewPassword.Password)
+	if good {
+		_, err = handler.service.UpdatePassword(ctx, user.Id, user)
+		if err != nil {
+			return nil, err
+		}
+		response := &userService.GetResponse{
+			User: mapUser(user),
+		}
+		return response, nil
+	}
+	return nil, err
 }

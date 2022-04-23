@@ -84,7 +84,7 @@ func (store *UserMongoDBStore) Update(ctx context.Context, userId primitive.Obje
 		"$set": user,
 	}
 	filter := bson.M{"_id": userId}
-	_, err = store.users.UpdateOne(ctx, filter, updatedUser)
+	_, err := store.users.UpdateOne(ctx, filter, updatedUser)
 
 	if err != nil {
 		return nil, err

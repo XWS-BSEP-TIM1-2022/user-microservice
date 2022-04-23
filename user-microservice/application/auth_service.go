@@ -6,6 +6,7 @@ import (
 	userService "github.com/XWS-BSEP-TIM1-2022/dislinkt/util/proto/user"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/token"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"user-microservice/model"
 )
 
@@ -55,4 +56,12 @@ func (service *AuthService) IsAuthenticated(ctx context.Context, jwtToken string
 		return "", err
 	}
 	return model.UserRole(userRole), nil
+}
+
+func (service *AuthService) CheckPassword(ctx context.Context, password string, userId primitive.ObjectID) (bool, error) {
+	user, err := service.store.Get(ctx, userId)
+	if err == nil && security.BcryptCompareHashAndPassword(user.Password, password) != nil {
+		return true, nil
+	}
+	return false, errors.New("wrong password")
 }
