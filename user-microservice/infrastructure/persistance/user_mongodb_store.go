@@ -80,18 +80,12 @@ func (store *UserMongoDBStore) Update(ctx context.Context, userId primitive.Obje
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	existUser, err := store.Get(ctx, userId)
-	if err != nil {
-		return nil, err
-	}
-	user.Role = existUser.Role
-	user.Password = existUser.Password
-
 	updatedUser := bson.M{
 		"$set": user,
 	}
 	filter := bson.M{"_id": userId}
 	_, err = store.users.UpdateOne(ctx, filter, updatedUser)
+
 	if err != nil {
 		return nil, err
 	}

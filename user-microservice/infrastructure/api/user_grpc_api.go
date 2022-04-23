@@ -112,7 +112,7 @@ func (handler *UserHandler) UpdateRequest(ctx context.Context, in *userService.U
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	if in.User.Name == "" || in.User.Surname == "" || in.User.Email == "" || in.User.BirthDate == "" || in.User.Username == "" || in.User.Password == "" {
+	if in.User.Name == "" || in.User.Surname == "" || in.User.Email == "" || in.User.BirthDate == "" || in.User.Username == "" {
 		return nil, errors.New("not entered required fields")
 	}
 

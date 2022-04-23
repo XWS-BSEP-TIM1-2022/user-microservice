@@ -50,6 +50,13 @@ func (service *UserService) Create(ctx context.Context, user *model.User) (*mode
 }
 
 func (service *UserService) Update(ctx context.Context, userId primitive.ObjectID, user *model.User) (*model.User, error) {
+	existUser, err := service.store.Get(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	user.Role = existUser.Role
+	user.Username = existUser.Username
+	user.Password = existUser.Password
 	return service.store.Update(ctx, userId, user)
 }
 
