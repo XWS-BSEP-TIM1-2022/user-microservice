@@ -1,6 +1,7 @@
 package startup
 
 import (
+	"context"
 	"fmt"
 	userService "github.com/XWS-BSEP-TIM1-2022/dislinkt/util/proto/user"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/token"
@@ -19,10 +20,11 @@ import (
 )
 
 type Server struct {
-	config     *config.Config
-	tracer     otgo.Tracer
-	closer     io.Closer
-	jwtManager *token.JwtManager
+	config      *config.Config
+	tracer      otgo.Tracer
+	closer      io.Closer
+	jwtManager  *token.JwtManager
+	mongoClient *mongo.Client
 }
 
 func NewServer(config *config.Config) *Server {
@@ -46,13 +48,18 @@ func (server *Server) GetCloser() io.Closer {
 }
 
 func (server *Server) Start() {
-	mongoClient := server.initMongoClient()
-	userStore := server.initUserStore(mongoClient)
+	server.mongoClient = server.initMongoClient()
+	userStore := server.initUserStore(server.mongoClient)
 	userService := server.initUserService(userStore)
 	authService := server.initAuthService(userStore)
 	userHandler := server.initUserHandler(userService, authService)
 
 	server.startGrpcServer(userHandler)
+}
+
+func (server *Server) Stop() {
+	log.Println("stopping server")
+	server.mongoClient.Disconnect(context.TODO())
 }
 
 func (server *Server) initMongoClient() *mongo.Client {
