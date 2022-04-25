@@ -252,5 +252,15 @@ func (handler *UserHandler) GetAllUsersExperienceRequest(ctx context.Context, in
 		response.Experiences = append(response.Experiences, current)
 	}
 	return response, nil
+}
 
+func (handler *UserHandler) DeleteExperienceRequest(ctx context.Context, in *userService.DeleteUsersExperienceRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "DeleteExperienceRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id, _ := primitive.ObjectIDFromHex(in.ExperienceId)
+	handler.experienceService.Delete(ctx, id)
+	response := &userService.EmptyRequest{}
+	return response, nil
 }

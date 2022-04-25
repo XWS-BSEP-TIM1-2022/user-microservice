@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"user-microservice/model"
 )
 
@@ -21,4 +22,9 @@ func (service *ExperienceService) GetByUserId(ctx context.Context, id string) ([
 
 func (service *ExperienceService) Create(ctx context.Context, experience *model.Experience) (*model.Experience, error) {
 	return service.store.CreateExperience(ctx, experience)
+}
+
+func (service *ExperienceService) Delete(ctx context.Context, expId primitive.ObjectID) error {
+	return service.store.DeleteExperience(ctx, expId)
+
 }

@@ -218,6 +218,14 @@ func (store *UserMongoDBStore) UpdateExperience(ctx context.Context, experienceI
 }
 
 func (store *UserMongoDBStore) DeleteExperience(ctx context.Context, id primitive.ObjectID) error {
-	//TODO implement me
-	panic("implement me")
+	span := tracer.StartSpanFromContext(ctx, "DeleteExperience")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	filter := bson.M{"_id": id}
+	_, err := store.experiences.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+	return nil
 }
