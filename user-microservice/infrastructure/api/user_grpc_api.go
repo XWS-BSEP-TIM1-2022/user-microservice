@@ -230,3 +230,27 @@ func (handler *UserHandler) PostExperienceRequest(ctx context.Context, in *userS
 	}
 	return response, nil
 }
+
+func (handler *UserHandler) GetAllUsersExperienceRequest(ctx context.Context, in *userService.ExperienceRequest) (*userService.ExperienceResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "GetAllUsersExperienceRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+	/*
+		userId, err := primitive.ObjectIDFromHex(in.GetUserId())
+		if err != nil {
+			panic(err)
+		}
+	*/
+
+	experiences, _ := handler.experienceService.GetByUserId(ctx, in.UserId)
+
+	response := &userService.ExperienceResponse{
+		Experiences: []*userService.Experience{},
+	}
+	for _, experience := range experiences {
+		current := mapExperience(experience)
+		response.Experiences = append(response.Experiences, current)
+	}
+	return response, nil
+
+}

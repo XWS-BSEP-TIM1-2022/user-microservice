@@ -184,12 +184,12 @@ func (store *UserMongoDBStore) GetAllWithoutAdmins(ctx context.Context) ([]*mode
 	return store.filter(ctx, filter)
 }
 
-func (store *UserMongoDBStore) GetExperiencesByUserId(ctx context.Context, id primitive.ObjectID) ([]*model.Experience, error) {
+func (store *UserMongoDBStore) GetExperiencesByUserId(ctx context.Context, id string) ([]*model.Experience, error) {
 	span := tracer.StartSpanFromContext(ctx, "GetExperiencesByUserId")
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	filter := bson.M{"userId": id}
+	filter := bson.M{"userid": id}
 	cursor, err := store.experiences.Find(ctx, filter)
 	defer cursor.Close(ctx)
 

@@ -17,7 +17,7 @@ type UserStore interface {
 	GetAllWithoutAdmins(ctx context.Context) ([]*User, error)
 
 	//experience
-	GetExperiencesByUserId(ctx context.Context, id primitive.ObjectID) ([]*Experience, error)
+	GetExperiencesByUserId(ctx context.Context, id string) ([]*Experience, error)
 	CreateExperience(ctx context.Context, experience *Experience) (*Experience, error)
 	UpdateExperience(ctx context.Context, experienceId primitive.ObjectID, experience *Experience) (*Experience, error)
 	DeleteExperience(ctx context.Context, id primitive.ObjectID) error

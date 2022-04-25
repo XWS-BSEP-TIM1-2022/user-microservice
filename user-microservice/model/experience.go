@@ -6,7 +6,7 @@ import (
 )
 
 type Experience struct {
-	Id             primitive.ObjectID `json:"experienceId"`
+	Id             primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UserId         string             `json:"userId"`
 	Name           string             `json:"name"`
 	Title          string             `json:"title"`
