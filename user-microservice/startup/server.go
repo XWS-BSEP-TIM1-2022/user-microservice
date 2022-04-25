@@ -52,7 +52,8 @@ func (server *Server) Start() {
 	userStore := server.initUserStore(server.mongoClient)
 	userService := server.initUserService(userStore)
 	authService := server.initAuthService(userStore)
-	userHandler := server.initUserHandler(userService, authService)
+	experienceService := server.initExperienceService(userStore)
+	userHandler := server.initUserHandler(userService, authService, experienceService)
 
 	server.startGrpcServer(userHandler)
 }
@@ -99,10 +100,17 @@ func (server *Server) initUserService(store model.UserStore) *application.UserSe
 	return application.NewUserService(store)
 }
 
-func (server *Server) initUserHandler(service *application.UserService, authService *application.AuthService) *api.UserHandler {
-	return api.NewUserHandler(service, authService)
+func (server *Server) initUserHandler(
+	service *application.UserService,
+	authService *application.AuthService,
+	experienceService *application.ExperienceService) *api.UserHandler {
+	return api.NewUserHandler(service, authService, experienceService)
 }
 
 func (server *Server) initAuthService(store model.UserStore) *application.AuthService {
 	return application.NewAuthService(store, server.jwtManager)
+}
+
+func (server *Server) initExperienceService(store model.UserStore) *application.ExperienceService {
+	return application.NewExperienceService(store)
 }

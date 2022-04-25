@@ -15,13 +15,16 @@ const (
 )
 
 type UserMongoDBStore struct {
-	users *mongo.Collection
+	users       *mongo.Collection
+	experiences *mongo.Collection
 }
 
 func NewUserMongoDBStore(client *mongo.Client) model.UserStore {
 	users := client.Database(DATABASE).Collection(COLLECTION)
+	experiences := client.Database(DATABASE).Collection("experiences")
 	return &UserMongoDBStore{
-		users: users,
+		users:       users,
+		experiences: experiences,
 	}
 }
 
@@ -155,6 +158,23 @@ func decode(ctx context.Context, cursor *mongo.Cursor) (users []*model.User, err
 	return
 }
 
+func decodeExperience(ctx context.Context, cursor *mongo.Cursor) (experiences []*model.Experience, err error) {
+	span := tracer.StartSpanFromContext(ctx, "decode")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	for cursor.Next(ctx) {
+		var experience model.Experience
+		err = cursor.Decode(&experience)
+		if err != nil {
+			return
+		}
+		experiences = append(experiences, &experience)
+	}
+	err = cursor.Err()
+	return
+}
+
 func (store *UserMongoDBStore) GetAllWithoutAdmins(ctx context.Context) ([]*model.User, error) {
 	span := tracer.StartSpanFromContext(ctx, "GetAll")
 	defer span.Finish()
@@ -162,4 +182,42 @@ func (store *UserMongoDBStore) GetAllWithoutAdmins(ctx context.Context) ([]*mode
 
 	filter := bson.M{"role": model.USER}
 	return store.filter(ctx, filter)
+}
+
+func (store *UserMongoDBStore) GetExperiencesByUserId(ctx context.Context, id primitive.ObjectID) ([]*model.Experience, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetExperiencesByUserId")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	filter := bson.M{"userId": id}
+	cursor, err := store.experiences.Find(ctx, filter)
+	defer cursor.Close(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+	return decodeExperience(ctx, cursor)
+}
+
+func (store *UserMongoDBStore) CreateExperience(ctx context.Context, experience *model.Experience) (*model.Experience, error) {
+	span := tracer.StartSpanFromContext(ctx, "CreateNewExperience")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	result, err := store.experiences.InsertOne(ctx, experience)
+	if err != nil {
+		return nil, err
+	}
+	experience.Id = result.InsertedID.(primitive.ObjectID)
+	return experience, nil
+}
+
+func (store *UserMongoDBStore) UpdateExperience(ctx context.Context, experienceId primitive.ObjectID, experience *model.Experience) (*model.Experience, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (store *UserMongoDBStore) DeleteExperience(ctx context.Context, id primitive.ObjectID) error {
+	//TODO implement me
+	panic("implement me")
 }

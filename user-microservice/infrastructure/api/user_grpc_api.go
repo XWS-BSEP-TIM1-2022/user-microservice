@@ -13,14 +13,19 @@ import (
 
 type UserHandler struct {
 	userService.UnimplementedUserServiceServer
-	service     *application.UserService
-	authService *application.AuthService
+	service           *application.UserService
+	authService       *application.AuthService
+	experienceService *application.ExperienceService
 }
 
-func NewUserHandler(service *application.UserService, authService *application.AuthService) *UserHandler {
+func NewUserHandler(
+	service *application.UserService,
+	authService *application.AuthService,
+	experienceService *application.ExperienceService) *UserHandler {
 	return &UserHandler{
-		service:     service,
-		authService: authService,
+		service:           service,
+		authService:       authService,
+		experienceService: experienceService,
 	}
 }
 
@@ -205,4 +210,23 @@ func (handler *UserHandler) UpdatePasswordRequest(ctx context.Context, in *userS
 		return response, nil
 	}
 	return nil, err
+}
+
+func (handler *UserHandler) PostExperienceRequest(ctx context.Context, in *userService.NewExperienceRequest) (*userService.NewExperienceResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "PostExperienceRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	experienceFromRequest := mapExperiencePb(in.Experience)
+
+	experience, err := handler.experienceService.Create(ctx, experienceFromRequest)
+
+	if err != nil {
+		return nil, err
+	}
+	experiencePb := mapExperience(experience)
+	response := &userService.NewExperienceResponse{
+		Experience: experiencePb,
+	}
+	return response, nil
 }

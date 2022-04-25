@@ -57,3 +57,49 @@ func mapUserPb(userPb *userService.User) *model.User {
 	}
 	return user
 }
+
+func mapExperience(experience *model.Experience) *userService.Experience {
+	experiencePb := &userService.Experience{
+		Id:             experience.Id.Hex(),
+		UserId:         experience.UserId,
+		Name:           experience.Name,
+		Title:          experience.Title,
+		ExperienceType: experience.ExperienceType,
+		StartDate:      experience.StartDate.String(),
+		EndDate:        experience.EndDate.String(),
+	}
+	return experiencePb
+}
+
+func mapExperiencePb(experiencePb *userService.Experience) *model.Experience {
+	id, _ := primitive.ObjectIDFromHex(experiencePb.Id)
+	start := time.Now()
+	if experiencePb.StartDate != "" {
+		dateString := strings.Split(experiencePb.StartDate, "T")
+		date := strings.Split(dateString[0], "-")
+		year, _ := strconv.Atoi(date[0])
+		month, _ := strconv.Atoi(date[1])
+		day, _ := strconv.Atoi(date[2])
+		start = time.Date(year, time.Month(month), day, 12, 0, 0, 0, time.UTC)
+	}
+
+	end := time.Now()
+	if experiencePb.StartDate != "" {
+		dateString := strings.Split(experiencePb.StartDate, "T")
+		date := strings.Split(dateString[0], "-")
+		year, _ := strconv.Atoi(date[0])
+		month, _ := strconv.Atoi(date[1])
+		day, _ := strconv.Atoi(date[2])
+		end = time.Date(year, time.Month(month), day, 12, 0, 0, 0, time.UTC)
+	}
+	experience := &model.Experience{
+		Id:             id,
+		Name:           experiencePb.Name,
+		Title:          experiencePb.Title,
+		UserId:         experiencePb.UserId,
+		ExperienceType: experiencePb.ExperienceType,
+		StartDate:      start,
+		EndDate:        end,
+	}
+	return experience
+}
