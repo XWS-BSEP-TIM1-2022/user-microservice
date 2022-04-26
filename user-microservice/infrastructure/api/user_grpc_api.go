@@ -264,3 +264,19 @@ func (handler *UserHandler) DeleteExperienceRequest(ctx context.Context, in *use
 	response := &userService.EmptyRequest{}
 	return response, nil
 }
+
+func (handler *UserHandler) IsUserPrivateRequest(ctx context.Context, in *userService.UserIdRequest) (*userService.PrivateResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "IsUserPrivateRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id, _ := primitive.ObjectIDFromHex(in.UserId)
+
+	isPrivate, err := handler.service.IsUserPrivate(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &userService.PrivateResponse{IsPrivate: isPrivate}, nil
+}

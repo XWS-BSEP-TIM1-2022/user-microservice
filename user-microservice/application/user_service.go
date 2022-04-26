@@ -92,3 +92,11 @@ func (service *UserService) Search(ctx context.Context, searchParam string) ([]*
 	}
 	return retVal, nil
 }
+
+func (service *UserService) IsUserPrivate(ctx context.Context, id primitive.ObjectID) (bool, error) {
+	user, err := service.Get(ctx, id)
+	if err != nil {
+		return false, err
+	}
+	return user.Private, nil
+}
