@@ -280,3 +280,31 @@ func (handler *UserHandler) IsUserPrivateRequest(ctx context.Context, in *userSe
 
 	return &userService.PrivateResponse{IsPrivate: isPrivate}, nil
 }
+
+func (handler *UserHandler) AddUserSkill(ctx context.Context, in *userService.NewSkillRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "AddUserSkill")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id, _ := primitive.ObjectIDFromHex(in.NewSkill.UserId)
+	user, _ := handler.service.Get(ctx, id)
+	user.Skills = append(user.Skills, in.NewSkill.Skill)
+
+	user, err := handler.service.Update(ctx, id, user)
+
+	return &userService.EmptyRequest{}, err
+}
+
+func (handler *UserHandler) AddUserInterest(ctx context.Context, in *userService.NewInterestRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "AddUserInterest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id, _ := primitive.ObjectIDFromHex(in.NewInterest.UserId)
+	user, _ := handler.service.Get(ctx, id)
+	user.Interests = append(user.Interests, in.NewInterest.Interest)
+
+	user, err := handler.service.Update(ctx, id, user)
+
+	return &userService.EmptyRequest{}, err
+}
