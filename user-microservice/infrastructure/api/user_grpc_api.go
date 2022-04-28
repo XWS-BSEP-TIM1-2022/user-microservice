@@ -165,8 +165,10 @@ func (handler *UserHandler) SearchUsersRequest(ctx context.Context, in *userServ
 		Users: []*userService.User{},
 	}
 	for _, user := range users {
-		current := mapUser(user)
-		response.Users = append(response.Users, current)
+		if in.UserId != user.Id.Hex() {
+			current := mapUser(user)
+			response.Users = append(response.Users, current)
+		}
 	}
 	return response, nil
 }
