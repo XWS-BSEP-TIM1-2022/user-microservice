@@ -83,10 +83,10 @@ func (service *UserService) Search(ctx context.Context, searchParam string) ([]*
 	if err != nil {
 		return nil, err
 	}
-
+	searchParam = strings.ToLower(searchParam)
 	var retVal []*model.User
 	for _, user := range users {
-		if strings.Contains(user.Username, searchParam) || strings.Contains(user.Name, searchParam) || strings.Contains(user.Surname, searchParam) || strings.Contains(user.Email, searchParam) {
+		if strings.Contains(strings.ToLower(user.Username), searchParam) || strings.Contains(strings.ToLower(user.Name), searchParam) || strings.Contains(strings.ToLower(user.Surname), searchParam) || strings.Contains(strings.ToLower(user.Email), searchParam) {
 			retVal = append(retVal, user)
 		}
 	}

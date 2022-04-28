@@ -29,7 +29,7 @@ func (service *AuthService) Login(ctx context.Context, in *userService.Credentia
 		if err != nil {
 			return nil, err
 		}
-		return &userService.LoginResponse{UserId: user.Id.Hex(), Email: user.Email, Role: string(user.Role), Token: jwtToken}, nil
+		return &userService.LoginResponse{UserId: user.Id.Hex(), Email: user.Email, Role: string(user.Role), Token: jwtToken, IsPrivate: user.Private}, nil
 	}
 	return nil, errors.New("wrong username or password")
 }
