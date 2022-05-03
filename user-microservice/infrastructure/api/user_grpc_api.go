@@ -7,6 +7,7 @@ import (
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/tracer"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/exp/slices"
 	"user-microservice/application"
 	"user-microservice/model"
 )
@@ -290,6 +291,9 @@ func (handler *UserHandler) AddUserSkill(ctx context.Context, in *userService.Ne
 
 	id, _ := primitive.ObjectIDFromHex(in.NewSkill.UserId)
 	user, _ := handler.service.Get(ctx, id)
+	if slices.Contains(user.Skills, in.NewSkill.Skill) {
+		return nil, errors.New("interest already exists")
+	}
 	user.Skills = append(user.Skills, in.NewSkill.Skill)
 
 	user, err := handler.service.Update(ctx, id, user)
@@ -304,9 +308,50 @@ func (handler *UserHandler) AddUserInterest(ctx context.Context, in *userService
 
 	id, _ := primitive.ObjectIDFromHex(in.NewInterest.UserId)
 	user, _ := handler.service.Get(ctx, id)
+	if slices.Contains(user.Interests, in.NewInterest.Interest) {
+		return nil, errors.New("interest already exists")
+	}
+
 	user.Interests = append(user.Interests, in.NewInterest.Interest)
 
 	user, err := handler.service.Update(ctx, id, user)
 
 	return &userService.EmptyRequest{}, err
+}
+
+func (handler *UserHandler) RemoveInterest(ctx context.Context, in *userService.RemoveInterestRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "RemoveInterest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id, _ := primitive.ObjectIDFromHex(in.UserId)
+	user, _ := handler.service.Get(ctx, id)
+	user.Interests = remove(user.Interests, in.Interest)
+
+	user, err := handler.service.Update(ctx, id, user)
+
+	return &userService.EmptyRequest{}, err
+}
+
+func (handler *UserHandler) RemoveSkill(ctx context.Context, in *userService.RemoveSkillRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "RemoveSkill")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id, _ := primitive.ObjectIDFromHex(in.UserId)
+	user, _ := handler.service.Get(ctx, id)
+	user.Skills = remove(user.Skills, in.Skill)
+
+	user, err := handler.service.Update(ctx, id, user)
+
+	return &userService.EmptyRequest{}, err
+}
+
+func remove(s []string, r string) []string {
+	for i, v := range s {
+		if v == r {
+			return append(s[:i], s[i+1:]...)
+		}
+	}
+	return s
 }
