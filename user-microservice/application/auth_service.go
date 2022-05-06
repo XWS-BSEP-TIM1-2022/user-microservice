@@ -2,12 +2,21 @@ package application
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base32"
 	"errors"
+	"fmt"
 	userService "github.com/XWS-BSEP-TIM1-2022/dislinkt/util/proto/user"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/token"
+	"github.com/dgryski/dgoogauth"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"net/url"
 	"user-microservice/model"
+
+	_ "io/ioutil"
+
+	qr "rsc.io/qr"
 )
 
 type AuthService struct {
@@ -28,6 +37,10 @@ func (service *AuthService) Login(ctx context.Context, in *userService.Credentia
 		jwtToken, err := service.jwtManager.GenerateJWT(user.Id.Hex(), user.Email, string(user.Role))
 		if err != nil {
 			return nil, err
+		}
+
+		if user.TFAEnabled {
+			return &userService.LoginResponse{UserId: user.Id.Hex()}, nil
 		}
 		return &userService.LoginResponse{UserId: user.Id.Hex(), Email: user.Email, Role: string(user.Role), Token: jwtToken, IsPrivate: user.Private}, nil
 	}
@@ -64,4 +77,100 @@ func (service *AuthService) CheckPassword(ctx context.Context, password string, 
 		return true, nil
 	}
 	return false, errors.New("wrong password")
+}
+
+func (service *AuthService) GetQR2FA(ctx context.Context, userId primitive.ObjectID) ([]byte, error) {
+	user, err := service.store.Get(ctx, userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	secret := make([]byte, 10)
+	_, err = rand.Read(secret)
+	if err != nil {
+		panic(err)
+	}
+
+	user.TFASecret = base32.StdEncoding.EncodeToString(secret)
+	user.TFAEnabled = false
+	service.store.Update(ctx, userId, user)
+
+	URL, err := url.Parse("otpauth://totp")
+	if err != nil {
+		panic(err)
+	}
+
+	URL.Path += "/" + url.PathEscape("Dislinkt") + ":" + url.PathEscape(user.Username)
+
+	params := url.Values{}
+	params.Add("secret", user.TFASecret)
+	params.Add("issuer", "Dislinkt")
+
+	URL.RawQuery = params.Encode()
+	fmt.Printf("URL is %s\n", URL.String())
+
+	code, err := qr.Encode(URL.String(), qr.Q)
+
+	if err != nil {
+		return nil, err
+	}
+	return code.PNG(), nil
+}
+
+func (service *AuthService) Verify2fa(ctx context.Context, userId primitive.ObjectID, code string) (*userService.LoginResponse, error) {
+	user, err := service.store.Get(ctx, userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	otpc := &dgoogauth.OTPConfig{
+		Secret:      user.TFASecret,
+		WindowSize:  3,
+		HotpCounter: 0,
+		// UTC:         true,
+	}
+	val, err := otpc.Authenticate(code)
+	if err != nil {
+		return nil, err
+	}
+	if !val {
+		return nil, errors.New("Not recognize code")
+	}
+
+	jwtToken, err := service.jwtManager.GenerateJWT(user.Id.Hex(), user.Email, string(user.Role))
+	if err != nil {
+		return nil, err
+	}
+
+	return &userService.LoginResponse{UserId: user.Id.Hex(), Email: user.Email, Role: string(user.Role), Token: jwtToken, IsPrivate: user.Private}, nil
+}
+
+func (service *AuthService) Disable2fa(ctx context.Context, userId primitive.ObjectID) error {
+	user, err := service.store.Get(ctx, userId)
+	if err != nil {
+		return err
+	}
+	user.TFAEnabled = false
+	user.TFASecret = ""
+	user, err = service.store.Update(ctx, userId, user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *AuthService) Enable2FA(ctx context.Context, userId primitive.ObjectID, code string) error {
+	_, err := service.Verify2fa(ctx, userId, code)
+	if err != nil {
+		return err
+	}
+	user, err := service.store.Get(ctx, userId)
+	user.TFAEnabled = true
+	user, err = service.store.Update(ctx, userId, user)
+	if err != nil {
+		return err
+	}
+	return nil
 }

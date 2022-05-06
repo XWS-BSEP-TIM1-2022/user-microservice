@@ -153,6 +153,76 @@ func (handler *UserHandler) LoginRequest(ctx context.Context, in *userService.Cr
 	return handler.authService.Login(ctx, in)
 }
 
+func (handler *UserHandler) GetQR2FA(ctx context.Context, in *userService.UserIdRequest) (*userService.TFAResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "GetQR2FA")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	userId, err := primitive.ObjectIDFromHex(in.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	qrCode, err := handler.authService.GetQR2FA(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	response := &userService.TFAResponse{
+		QrCode: qrCode,
+	}
+
+	return response, nil
+}
+
+func (handler *UserHandler) Enable2FA(ctx context.Context, in *userService.TFARequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "Enable2FA")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	userId, err := primitive.ObjectIDFromHex(in.Tfa.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	err = handler.authService.Enable2FA(ctx, userId, in.Tfa.Code)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userService.EmptyRequest{}, nil
+}
+
+func (handler *UserHandler) Verify2FA(ctx context.Context, in *userService.TFARequest) (*userService.LoginResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "Verify2FA")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	userId, err := primitive.ObjectIDFromHex(in.Tfa.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	return handler.authService.Verify2fa(ctx, userId, in.Tfa.Code)
+}
+
+func (handler *UserHandler) Disable2FA(ctx context.Context, in *userService.UserIdRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "Disable2FA")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	userId, err := primitive.ObjectIDFromHex(in.UserId)
+	if err != nil {
+		return nil, err
+	}
+	err = handler.authService.Disable2fa(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userService.EmptyRequest{}, nil
+}
+
 func (handler *UserHandler) SearchUsersRequest(ctx context.Context, in *userService.SearchRequest) (*userService.UsersResponse, error) {
 	span := tracer.StartSpanFromContextMetadata(ctx, "SearchUsersRequest")
 	defer span.Finish()

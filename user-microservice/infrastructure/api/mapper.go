@@ -25,6 +25,7 @@ func mapUser(user *model.User) *userService.User {
 		Interests:   user.Interests,
 		Private:     user.Private,
 		Role:        string(user.Role),
+		TFAEnabled:  user.TFAEnabled,
 	}
 	return userPb
 }

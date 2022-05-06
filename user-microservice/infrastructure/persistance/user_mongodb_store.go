@@ -77,7 +77,6 @@ func (store *UserMongoDBStore) Create(ctx context.Context, user *model.User) (*m
 	return user, nil
 }
 
-//TODO: dodati validacije
 func (store *UserMongoDBStore) Update(ctx context.Context, userId primitive.ObjectID, user *model.User) (*model.User, error) {
 	span := tracer.StartSpanFromContext(ctx, "Update")
 	defer span.Finish()

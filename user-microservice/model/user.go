@@ -20,6 +20,8 @@ type User struct {
 	Interests   []string           `json:"interests"`
 	Private     bool               `json:"private"`
 	Role        UserRole           `json:"role"`
+	TFASecret   string             `json:"2faSecret"`
+	TFAEnabled  bool               `json:"2faEnabled"`
 }
 
 type UserRole string
