@@ -5,17 +5,21 @@ import (
 	"errors"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"regexp"
 	"strings"
 	"user-microservice/model"
+	"user-microservice/startup/config"
 )
 
 type UserService struct {
-	store model.UserStore
+	store  model.UserStore
+	config *config.Config
 }
 
-func NewUserService(store model.UserStore) *UserService {
+func NewUserService(store model.UserStore, config *config.Config) *UserService {
 	return &UserService{
-		store: store,
+		store:  store,
+		config: config,
 	}
 }
 
@@ -40,6 +44,12 @@ func (service *UserService) Create(ctx context.Context, user *model.User) (*mode
 		}
 	}
 
+	err = service.passwordIsOk(user.Password)
+
+	if err != nil {
+		return nil, err
+	}
+
 	hashedPassword, err := security.BcryptGenerateFromPassword(user.Password)
 	if err != nil {
 		return nil, err
@@ -47,6 +57,74 @@ func (service *UserService) Create(ctx context.Context, user *model.User) (*mode
 	user.Password = hashedPassword
 
 	return service.store.Create(ctx, user)
+}
+
+func (service *UserService) passwordIsOk(password string) error {
+	if len(password) < 8 {
+		return errors.New("Password must be atleast 8 characters")
+	}
+
+	match, _ := regexp.MatchString("[0-9]", password)
+	if !match {
+		return errors.New("Password must contain atleast 1 number")
+	}
+
+	match, _ = regexp.MatchString("[A-Z]", password)
+	if !match {
+		return errors.New("Password must contain atleast 1 upper case")
+	}
+
+	match, _ = regexp.MatchString("[a-z]", password)
+	if !match {
+		return errors.New("Password must contain atleast 1 lower case")
+	}
+
+	match, _ = regexp.MatchString("[.,<>/?|';:!@#$%^&*()_+=-]", password)
+	if !match {
+		return errors.New("Password must contain atleast 1 special characher")
+	}
+
+	/*for _, commonPassword := range service.config.CommonPasswords {
+		if strings.Contains(commonPassword, password) || strings.Contains(password, commonPassword) {
+			return errors.New("Password must not be a common password or containts common. (" + commonPassword + ")")
+		}
+	}*/
+	err := service.CheckIsPasswordInCommonPasswords(password)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *UserService) CheckIsPasswordInCommonPasswords(password string) error {
+	numRoutines := 10
+	c := make(chan string)
+
+	step := len(service.config.CommonPasswords) / numRoutines
+
+	for i := 0; i < numRoutines-1; i++ {
+		go contain(password, service.config.CommonPasswords[step*i:step*(i+1)], c)
+	}
+	go contain(password, service.config.CommonPasswords[step*(numRoutines-1):len(service.config.CommonPasswords)], c)
+
+	for i := 0; i < numRoutines; i++ {
+		common := <-c
+		if common != "" {
+			return errors.New("Password must not be a common password or containts common. (" + common + ")")
+		}
+	}
+	return nil
+}
+
+func contain(password string, subarray []string, c chan string) {
+	for _, commonPassword := range subarray {
+		if strings.Contains(commonPassword, password) || strings.Contains(password, commonPassword) {
+			c <- commonPassword
+			return
+		}
+	}
+	c <- ""
 }
 
 func (service *UserService) Update(ctx context.Context, userId primitive.ObjectID, user *model.User) (*model.User, error) {

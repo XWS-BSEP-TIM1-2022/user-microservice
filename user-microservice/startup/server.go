@@ -50,7 +50,7 @@ func (server *Server) GetCloser() io.Closer {
 func (server *Server) Start() {
 	server.mongoClient = server.initMongoClient()
 	userStore := server.initUserStore(server.mongoClient)
-	userService := server.initUserService(userStore)
+	userService := server.initUserService(userStore, server.config)
 	authService := server.initAuthService(userStore)
 	experienceService := server.initExperienceService(userStore)
 	userHandler := server.initUserHandler(userService, authService, experienceService)
@@ -96,8 +96,8 @@ func (server *Server) initUserStore(client *mongo.Client) model.UserStore {
 	return store
 }
 
-func (server *Server) initUserService(store model.UserStore) *application.UserService {
-	return application.NewUserService(store)
+func (server *Server) initUserService(store model.UserStore, config *config.Config) *application.UserService {
+	return application.NewUserService(store, config)
 }
 
 func (server *Server) initUserHandler(
