@@ -257,6 +257,10 @@ func (handler *UserHandler) UpdatePasswordRequest(ctx context.Context, in *userS
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
+	if in.NewPassword.Password != in.NewPassword.ConfirmNewPassword {
+		return nil, errors.New("Passwords not match")
+	}
+
 	id := in.GetNewPassword().GetUserId()
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -271,6 +275,11 @@ func (handler *UserHandler) UpdatePasswordRequest(ctx context.Context, in *userS
 		return nil, err
 	}
 
+	err = handler.service.IsPasswordOk(in.NewPassword.Password)
+
+	if err != nil {
+		return nil, err
+	}
 	user.Password, _ = security.BcryptGenerateFromPassword(in.NewPassword.Password)
 	if good {
 		_, err = handler.service.UpdatePassword(ctx, user.Id, user)

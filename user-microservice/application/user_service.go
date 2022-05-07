@@ -44,7 +44,7 @@ func (service *UserService) Create(ctx context.Context, user *model.User) (*mode
 		}
 	}
 
-	err = service.passwordIsOk(user.Password)
+	err = service.IsPasswordOk(user.Password)
 
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (service *UserService) Create(ctx context.Context, user *model.User) (*mode
 	return service.store.Create(ctx, user)
 }
 
-func (service *UserService) passwordIsOk(password string) error {
+func (service *UserService) IsPasswordOk(password string) error {
 	if len(password) < 8 {
 		return errors.New("Password must be atleast 8 characters")
 	}
