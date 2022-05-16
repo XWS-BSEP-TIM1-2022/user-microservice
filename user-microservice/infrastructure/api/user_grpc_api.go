@@ -140,7 +140,10 @@ func (handler *UserHandler) DeleteRequest(ctx context.Context, in *userService.U
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
 	id, _ := primitive.ObjectIDFromHex(in.UserId)
-	handler.service.Delete(ctx, id)
+	err := handler.service.Delete(ctx, id)
+	if err != nil {
+		return nil, err
+	}
 	response := &userService.EmptyRequest{}
 	return response, nil
 }
