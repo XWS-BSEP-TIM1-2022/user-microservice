@@ -10,6 +10,7 @@ import (
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/token"
 	"github.com/dgryski/dgoogauth"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/url"
 	"user-microservice/model"
@@ -173,4 +174,53 @@ func (service *AuthService) Enable2FA(ctx context.Context, userId primitive.Obje
 		return err
 	}
 	return nil
+}
+
+func (service *AuthService) GetApiToken(ctx context.Context, userId primitive.ObjectID) (string, error) {
+	user, err := service.store.Get(ctx, userId)
+	if err != nil {
+		return "", err
+	}
+	return user.ApiToken, nil
+}
+
+func (service *AuthService) CreateApiToken(ctx context.Context, userId primitive.ObjectID) (string, error) {
+	user, err := service.store.Get(ctx, userId)
+	if err != nil {
+		return "", err
+	}
+
+	user.ApiToken = uuid.New().String()
+	_, err = service.store.Update(ctx, userId, user)
+	if err != nil {
+		return "", err
+	}
+	return user.ApiToken, nil
+}
+
+func (service *AuthService) RemoveApiToken(ctx context.Context, userId primitive.ObjectID) error {
+	user, err := service.store.Get(ctx, userId)
+	if err != nil {
+		return err
+	}
+	user.ApiToken = ""
+	_, err = service.store.Update(ctx, userId, user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service *AuthService) IsApiTokenValid(ctx context.Context, token string) (string, error) {
+	users, err := service.store.GetAll(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	for _, user := range users {
+		if user.ApiToken == token {
+			return user.Id.Hex(), nil
+		}
+	}
+	return "", errors.New("unauthorized")
 }

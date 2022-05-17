@@ -7,6 +7,7 @@ replace github.com/XWS-BSEP-TIM1-2022/dislinkt/util => ./../../util
 require (
 	github.com/XWS-BSEP-TIM1-2022/dislinkt/util v0.0.0-00010101000000-000000000000
 	github.com/dgryski/dgoogauth v0.0.0-20190221195224-5a805980a5f3
+	github.com/google/uuid v1.1.2
 	github.com/opentracing/opentracing-go v1.2.0
 	go.mongodb.org/mongo-driver v1.9.0
 	golang.org/x/exp v0.0.0-20220428152302-39d4317da171

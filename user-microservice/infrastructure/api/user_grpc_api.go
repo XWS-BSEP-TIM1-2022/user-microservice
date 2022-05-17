@@ -248,11 +248,19 @@ func (handler *UserHandler) SearchUsersRequest(ctx context.Context, in *userServ
 }
 
 func (handler *UserHandler) IsUserAuthenticated(ctx context.Context, in *userService.AuthRequest) (*userService.AuthResponse, error) {
-	userRole, err := handler.authService.IsAuthenticated(ctx, in.JwtToken)
+	userRole, err := handler.authService.IsAuthenticated(ctx, in.Token)
 	if err != nil {
 		return nil, err
 	}
 	return &userService.AuthResponse{UserRole: string(userRole)}, nil
+}
+
+func (handler *UserHandler) IsApiTokenValid(ctx context.Context, in *userService.AuthRequest) (*userService.UserIdRequest, error) {
+	userId, err := handler.authService.IsApiTokenValid(ctx, in.Token)
+	if err != nil {
+		return nil, err
+	}
+	return &userService.UserIdRequest{UserId: userId}, nil
 }
 
 func (handler *UserHandler) UpdatePasswordRequest(ctx context.Context, in *userService.NewPasswordRequest) (*userService.GetResponse, error) {
@@ -427,6 +435,56 @@ func (handler *UserHandler) RemoveSkill(ctx context.Context, in *userService.Rem
 	user, err := handler.service.Update(ctx, id, user)
 
 	return &userService.EmptyRequest{}, err
+}
+
+func (handler *UserHandler) ApiTokenRequest(ctx context.Context, in *userService.UserIdRequest) (*userService.ApiTokenResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "ApiTokenRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id, err := primitive.ObjectIDFromHex(in.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := handler.authService.GetApiToken(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &userService.ApiTokenResponse{ApiToken: token}, nil
+}
+
+func (handler *UserHandler) ApiTokenCreateRequest(ctx context.Context, in *userService.UserIdRequest) (*userService.ApiTokenResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "ApiTokenCreateRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id, err := primitive.ObjectIDFromHex(in.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := handler.authService.CreateApiToken(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &userService.ApiTokenResponse{ApiToken: token}, nil
+}
+
+func (handler *UserHandler) ApiTokenRemoveRequest(ctx context.Context, in *userService.UserIdRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "ApiTokenRemoveRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id, err := primitive.ObjectIDFromHex(in.UserId)
+	if err != nil {
+		return nil, err
+	}
+	err = handler.authService.RemoveApiToken(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return &userService.EmptyRequest{}, nil
 }
 
 func remove(s []string, r string) []string {
