@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/url"
+	"time"
 	"user-microservice/model"
 
 	_ "io/ioutil"
@@ -242,4 +243,28 @@ func (service *AuthService) IsApiTokenValid(ctx context.Context, token string) (
 		}
 	}
 	return "", errors.New("unauthorized")
+}
+
+func (service *AuthService) CreatePasswordRecoveryRequest(ctx context.Context, username string) error {
+	user, err := service.getUser(ctx, username)
+	if err != nil {
+		return err
+	}
+
+	passwordRecoveryRequest := &model.PasswordRecoveryRequest{
+		UserId:  user.Id.Hex(),
+		ValidTo: time.Now().Local().Add(time.Minute * time.Duration(30)),
+	}
+
+	createdRequest, err := service.store.CreatePasswordRecoveryRequest(ctx, passwordRecoveryRequest)
+	if err != nil {
+		return err
+	}
+
+	err = SendEmailForPasswordRecovery(ctx, user, createdRequest.Id.Hex())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

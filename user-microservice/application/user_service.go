@@ -3,12 +3,14 @@ package application
 import (
 	"context"
 	"errors"
+	userService "github.com/XWS-BSEP-TIM1-2022/dislinkt/util/proto/user"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/smtp"
 	"regexp"
 	"strings"
+	"time"
 	"user-microservice/application/smtp_login"
 	"user-microservice/model"
 	"user-microservice/startup/config"
@@ -187,6 +189,64 @@ func (service *UserService) IsUserPrivate(ctx context.Context, id primitive.Obje
 		return false, err
 	}
 	return user.Private, nil
+}
+
+func (service *UserService) RecoverPassword(ctx context.Context, in *userService.NewPasswordRecoveryRequest) error {
+	recoveryId, err := primitive.ObjectIDFromHex(in.RecoveryId)
+	if err != nil {
+		return err
+	}
+
+	if in.PasswordRecovery.NewPassword != in.PasswordRecovery.ConfirmPassword {
+		return errors.New("Passwords are not the same")
+	}
+
+	passwordRecoveryRequest, err := service.store.GetPasswordRecoveryRequest(ctx, recoveryId)
+	now := time.Now()
+	if passwordRecoveryRequest.ValidTo.Before(now) {
+		return errors.New("Recovery link has expired or used already")
+	}
+
+	userId, err := primitive.ObjectIDFromHex(passwordRecoveryRequest.UserId)
+	if err != nil {
+		return err
+	}
+	err = service.recoverUserPassword(ctx, userId, in.PasswordRecovery.NewPassword)
+	if err != nil {
+		return err
+	}
+
+	service.store.DeletePasswordRecoveryRequest(ctx, passwordRecoveryRequest.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *UserService) recoverUserPassword(ctx context.Context, userId primitive.ObjectID, newPassword string) error {
+	user, err := service.store.Get(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	err = service.IsPasswordOk(newPassword)
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := security.BcryptGenerateFromPassword(newPassword)
+	if err != nil {
+		return err
+	}
+	user.Password = hashedPassword
+
+	_, err = service.store.Update(ctx, userId, user)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func sendConfirmationMail(ctx context.Context, user *model.User) error {

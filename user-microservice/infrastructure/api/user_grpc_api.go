@@ -495,6 +495,32 @@ func (handler *UserHandler) ApiTokenRemoveRequest(ctx context.Context, in *userS
 	return &userService.EmptyRequest{}, nil
 }
 
+func (handler *UserHandler) CreatePasswordRecoveryRequest(ctx context.Context, in *userService.UsernameRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "PasswordRecoveryRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	err := handler.authService.CreatePasswordRecoveryRequest(ctx, in.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userService.EmptyRequest{}, nil
+}
+
+func (handler *UserHandler) PasswordRecoveryRequest(ctx context.Context, in *userService.NewPasswordRecoveryRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "PasswordRecoveryRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	err := handler.service.RecoverPassword(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userService.EmptyRequest{}, nil
+}
+
 func remove(s []string, r string) []string {
 	for i, v := range s {
 		if v == r {

@@ -15,16 +15,19 @@ const (
 )
 
 type UserMongoDBStore struct {
-	users       *mongo.Collection
-	experiences *mongo.Collection
+	users                    *mongo.Collection
+	experiences              *mongo.Collection
+	passwordRecoveryRequests *mongo.Collection
 }
 
 func NewUserMongoDBStore(client *mongo.Client) model.UserStore {
 	users := client.Database(DATABASE).Collection(COLLECTION)
 	experiences := client.Database(DATABASE).Collection("experiences")
+	passwordRecoveryRequests := client.Database(DATABASE).Collection("passwordRecoveryRequests")
 	return &UserMongoDBStore{
-		users:       users,
-		experiences: experiences,
+		users:                    users,
+		experiences:              experiences,
+		passwordRecoveryRequests: passwordRecoveryRequests,
 	}
 }
 
@@ -232,6 +235,44 @@ func (store *UserMongoDBStore) DeleteExperience(ctx context.Context, id primitiv
 
 	filter := bson.M{"_id": id}
 	_, err := store.experiences.DeleteOne(ctx, filter)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (store *UserMongoDBStore) GetPasswordRecoveryRequest(ctx context.Context, id primitive.ObjectID) (passwordRecoveryRequest *model.PasswordRecoveryRequest, err error) {
+	span := tracer.StartSpanFromContext(ctx, "GetPasswordRecoveryRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	filter := bson.M{"_id": id}
+
+	result := store.passwordRecoveryRequests.FindOne(ctx, filter)
+	err = result.Decode(&passwordRecoveryRequest)
+	return
+}
+
+func (store *UserMongoDBStore) CreatePasswordRecoveryRequest(ctx context.Context, passwordRecoveryRequest *model.PasswordRecoveryRequest) (*model.PasswordRecoveryRequest, error) {
+	span := tracer.StartSpanFromContext(ctx, "CreatePasswordRecoveryRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	result, err := store.passwordRecoveryRequests.InsertOne(ctx, passwordRecoveryRequest)
+	if err != nil {
+		return nil, err
+	}
+	passwordRecoveryRequest.Id = result.InsertedID.(primitive.ObjectID)
+	return passwordRecoveryRequest, nil
+}
+
+func (store *UserMongoDBStore) DeletePasswordRecoveryRequest(ctx context.Context, id primitive.ObjectID) error {
+	span := tracer.StartSpanFromContext(ctx, "DeletePasswordRecoveryRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	filter := bson.M{"_id": id}
+	_, err := store.users.DeleteOne(ctx, filter)
 	if err != nil {
 		return err
 	}

@@ -22,4 +22,9 @@ type UserStore interface {
 	CreateExperience(ctx context.Context, experience *Experience) (*Experience, error)
 	UpdateExperience(ctx context.Context, experienceId primitive.ObjectID, experience *Experience) (*Experience, error)
 	DeleteExperience(ctx context.Context, id primitive.ObjectID) error
+
+	//passwordRecoveryRequest
+	GetPasswordRecoveryRequest(ctx context.Context, id primitive.ObjectID) (*PasswordRecoveryRequest, error)
+	CreatePasswordRecoveryRequest(ctx context.Context, passwordRecoveryRequest *PasswordRecoveryRequest) (*PasswordRecoveryRequest, error)
+	DeletePasswordRecoveryRequest(ctx context.Context, id primitive.ObjectID) error
 }
