@@ -49,7 +49,7 @@ func SendEmailForPasswordRecovery(ctx context.Context, user *model.User, passwor
 
 	subject := "Subject: Reset your password\n"
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	body := "\nPozdrav " + user.Name + ",<br>" + "Da biste restartovali svoju lozinku, posetite sledeću stranicu:<br>" + "<h1><a href=" + url + " target=\"_self\">VERIFIKUJ</a></h1> " + "Hvala,<br>" + "Dislinkt."
+	body := "\nPozdrav " + user.Name + ",<br>" + "Da biste restartovali svoju lozinku, posetite sledeću stranicu:<br>" + "<h1><a href=" + url + " target=\"_self\">PROMENI LOZINKU</a></h1> " + "Hvala,<br>" + "Dislinkt."
 	message := []byte(subject + mime + body)
 
 	//auth := smtp.PlainAuth("", from, password, host)
