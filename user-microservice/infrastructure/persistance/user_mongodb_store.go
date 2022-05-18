@@ -55,6 +55,15 @@ func (store *UserMongoDBStore) GetByUsername(ctx context.Context, username strin
 	return store.filterOne(ctx, filter)
 }
 
+func (store *UserMongoDBStore) GetByConfirmationId(ctx context.Context, confirmationId string) (user *model.User, err error) {
+	span := tracer.StartSpanFromContext(ctx, "GetByConfirmationId")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	filter := bson.M{"confirmationId": confirmationId}
+	return store.filterOne(ctx, filter)
+}
+
 func (store *UserMongoDBStore) GetAll(ctx context.Context) ([]*model.User, error) {
 	span := tracer.StartSpanFromContext(ctx, "GetAll")
 	defer span.Finish()

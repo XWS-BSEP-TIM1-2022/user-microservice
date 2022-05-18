@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/smtp"
 	"regexp"
@@ -59,6 +60,7 @@ func (service *UserService) Create(ctx context.Context, user *model.User) (*mode
 	user.Password = hashedPassword
 
 	user.Confirmed = false
+	user.ConfirmationId = uuid.New().String()
 	err = sendConfirmationMail(ctx, user)
 	if err != nil {
 		return nil, err
@@ -197,10 +199,11 @@ func sendConfirmationMail(ctx context.Context, user *model.User) error {
 	host := "smtp-mail.outlook.com"
 	port := "587"
 	address := host + ":" + port
+	url := "https://localhost:8090/auth/verify/" + user.ConfirmationId
 
 	subject := "Subject: Verify your account on dislinkt\n"
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	body := "\nPozdrav " + user.Name + ",<br>" + "Da biste verifikovali svoj nalog, posetite sledeću stranicu:<br>" + "<h1><a href=" + "url" + " target=\"_self\">VERIFIKUJ</a></h1> " + "Hvala,<br>" + "Dislinkt."
+	body := "\nPozdrav " + user.Name + ",<br>" + "Da biste verifikovali svoj nalog, posetite sledeću stranicu:<br>" + "<h1><a href=" + url + " target=\"_self\">VERIFIKUJ</a></h1> " + "Hvala,<br>" + "Dislinkt."
 	message := []byte(subject + mime + body)
 
 	//auth := smtp.PlainAuth("", from, password, host)

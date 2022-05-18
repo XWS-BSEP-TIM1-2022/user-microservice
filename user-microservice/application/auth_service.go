@@ -35,6 +35,10 @@ func NewAuthService(store model.UserStore, manager *token.JwtManager) *AuthServi
 func (service *AuthService) Login(ctx context.Context, in *userService.CredentialsRequest) (*userService.LoginResponse, error) {
 	user, err := service.getUser(ctx, in.Credentials.Username)
 	if err == nil && security.BcryptCompareHashAndPassword(user.Password, in.Credentials.Password) == nil {
+		if user.Confirmed == false {
+			return nil, errors.New("unconfirmed registration")
+		}
+
 		jwtToken, err := service.jwtManager.GenerateJWT(user.Id.Hex(), user.Email, string(user.Role))
 		if err != nil {
 			return nil, err
@@ -58,6 +62,21 @@ func (service *AuthService) getUser(ctx context.Context, username string) (*mode
 		return user, nil
 	}
 	return nil, err
+}
+
+func (service *AuthService) ConfirmRegistration(ctx context.Context, in *userService.ConfirmationRequest) (*userService.ConfirmationResponse, error) {
+	user, err := service.store.GetByConfirmationId(ctx, in.ConfirmationId)
+	if err != nil {
+
+		return &userService.ConfirmationResponse{ResponseMessage: "user with given confirmationId does not exist"}, err
+	}
+	user.Confirmed = true
+	_, err = service.store.Update(ctx, user.Id, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userService.ConfirmationResponse{ResponseMessage: "successfully confirmed registration"}, nil
 }
 
 func (service *AuthService) IsAuthenticated(ctx context.Context, jwtToken string) (model.UserRole, error) {

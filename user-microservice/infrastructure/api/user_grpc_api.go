@@ -156,6 +156,14 @@ func (handler *UserHandler) LoginRequest(ctx context.Context, in *userService.Cr
 	return handler.authService.Login(ctx, in)
 }
 
+func (handler *UserHandler) ConfirmRegistration(ctx context.Context, in *userService.ConfirmationRequest) (*userService.ConfirmationResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "ConfirmRegistration")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	return handler.authService.ConfirmRegistration(ctx, in)
+}
+
 func (handler *UserHandler) GetQR2FA(ctx context.Context, in *userService.UserIdRequest) (*userService.TFAResponse, error) {
 	span := tracer.StartSpanFromContextMetadata(ctx, "GetQR2FA")
 	defer span.Finish()
