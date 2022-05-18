@@ -23,6 +23,7 @@ type User struct {
 	TFASecret   string             `json:"2faSecret"`
 	TFAEnabled  bool               `json:"2faEnabled"`
 	ApiToken    string             `json:"apiToken"`
+	Confirmed   bool               `json:"confirmed"`
 }
 
 type UserRole string
