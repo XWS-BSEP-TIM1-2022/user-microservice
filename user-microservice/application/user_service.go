@@ -7,11 +7,9 @@ import (
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/smtp"
 	"regexp"
 	"strings"
 	"time"
-	"user-microservice/application/smtp_login"
 	"user-microservice/model"
 	"user-microservice/startup/config"
 )
@@ -63,7 +61,7 @@ func (service *UserService) Create(ctx context.Context, user *model.User) (*mode
 
 	user.Confirmed = false
 	user.ConfirmationId = uuid.New().String()
-	err = sendConfirmationMail(ctx, user)
+	err = SendConfirmationMail(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -242,34 +240,6 @@ func (service *UserService) recoverUserPassword(ctx context.Context, userId prim
 	user.Password = hashedPassword
 
 	_, err = service.store.Update(ctx, userId, user)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func sendConfirmationMail(ctx context.Context, user *model.User) error {
-	from := "xwstim1@outlook.com"
-	password := "XWS.tim1"
-
-	toEmailAddress := user.Email
-	to := []string{toEmailAddress}
-
-	host := "smtp-mail.outlook.com"
-	port := "587"
-	address := host + ":" + port
-	url := "https://localhost:8090/auth/verify/" + user.ConfirmationId
-
-	subject := "Subject: Verify your account on dislinkt\n"
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	body := "\nPozdrav " + user.Name + ",<br>" + "Da biste verifikovali svoj nalog, posetite sledeću stranicu:<br>" + "<h1><a href=" + url + " target=\"_self\">VERIFIKUJ</a></h1> " + "Hvala,<br>" + "Dislinkt."
-	message := []byte(subject + mime + body)
-
-	//auth := smtp.PlainAuth("", from, password, host)
-	auth := smtp_login.LoginAuth(from, password)
-
-	err := smtp.SendMail(address, auth, from, to, message)
 	if err != nil {
 		return err
 	}
