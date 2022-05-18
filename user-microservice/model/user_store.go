@@ -27,4 +27,8 @@ type UserStore interface {
 	GetPasswordRecoveryRequest(ctx context.Context, id primitive.ObjectID) (*PasswordRecoveryRequest, error)
 	CreatePasswordRecoveryRequest(ctx context.Context, passwordRecoveryRequest *PasswordRecoveryRequest) (*PasswordRecoveryRequest, error)
 	DeletePasswordRecoveryRequest(ctx context.Context, id primitive.ObjectID) error
+
+	//passwordlessLoginCreate
+	CreatePasswordlessRequest(ctx context.Context, userId primitive.ObjectID) (string, error)
+	GetPasswordlessRequest(ctx context.Context, userId primitive.ObjectID, loginId primitive.ObjectID) (bool, error)
 }

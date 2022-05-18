@@ -268,3 +268,37 @@ func (service *AuthService) CreatePasswordRecoveryRequest(ctx context.Context, u
 
 	return nil
 }
+
+func (service *AuthService) PasswordlessLoginCreate(ctx context.Context, username string) error {
+	user, err := service.getUser(ctx, username)
+	if err != nil {
+		return err
+	}
+
+	id, err := service.store.CreatePasswordlessRequest(ctx, user.Id)
+	if err != nil {
+		return err
+	}
+
+	err = SendEmailForPasswordlessLogin(ctx, user, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (service *AuthService) PasswordlessLogin(ctx context.Context, userId primitive.ObjectID, loginId primitive.ObjectID) (*userService.LoginResponse, error) {
+	found, err := service.store.GetPasswordlessRequest(ctx, userId, loginId)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, errors.New("not found")
+	}
+
+	user, err := service.store.Get(ctx, userId)
+	jwtToken, err := service.jwtManager.GenerateJWT(user.Id.Hex(), user.Email, string(user.Role))
+
+	return &userService.LoginResponse{UserId: user.Id.Hex(), Email: user.Email, Role: string(user.Role), Token: jwtToken, IsPrivate: user.Private}, nil
+}

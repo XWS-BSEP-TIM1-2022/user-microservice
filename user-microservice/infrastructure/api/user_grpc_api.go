@@ -521,6 +521,29 @@ func (handler *UserHandler) PasswordRecoveryRequest(ctx context.Context, in *use
 	return &userService.EmptyRequest{}, nil
 }
 
+func (handler *UserHandler) PasswordlessLoginStart(ctx context.Context, in *userService.UsernameRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "PasswordlessLoginStart")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	err := handler.authService.PasswordlessLoginCreate(ctx, in.Username)
+	if err != nil {
+		return &userService.EmptyRequest{}, err
+	}
+
+	return &userService.EmptyRequest{}, nil
+}
+
+func (handler *UserHandler) PasswordlessLogin(ctx context.Context, in *userService.PasswordlessLoginRequest) (*userService.LoginResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "PasswordlessLogin")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	uid, _ := primitive.ObjectIDFromHex(in.UserId)
+	lid, _ := primitive.ObjectIDFromHex(in.LoginId)
+	return handler.authService.PasswordlessLogin(ctx, uid, lid)
+}
+
 func remove(s []string, r string) []string {
 	for i, v := range s {
 		if v == r {

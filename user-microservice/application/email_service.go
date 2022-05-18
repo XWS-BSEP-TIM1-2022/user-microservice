@@ -34,3 +34,30 @@ func SendEmailForPasswordRecovery(ctx context.Context, user *model.User, passwor
 
 	return nil
 }
+
+func SendEmailForPasswordlessLogin(ctx context.Context, user *model.User, passwordlessId string) error {
+	from := "xwstim1@outlook.com"
+	password := "XWS.tim1"
+
+	toEmailAddress := user.Email
+	to := []string{toEmailAddress}
+
+	host := "smtp-mail.outlook.com"
+	port := "587"
+	address := host + ":" + port
+	url := "https://localhost:4200/login/" + user.Id.String() + "/" + passwordlessId
+
+	subject := "Passwordless LOGIN:\n"
+	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	body := "\nPozdrav " + user.Name + ",<br>" + "Kliknite na link da biste se logovali:<br>" + "<h1><a href=" + url + " target=\"_self\">ULOGUJ SE</a></h1> " + "Pozdrav,<br>" + "Dislinkt."
+	message := []byte(subject + mime + body)
+
+	auth := smtp_login.LoginAuth(from, password)
+
+	err := smtp.SendMail(address, auth, from, to, message)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

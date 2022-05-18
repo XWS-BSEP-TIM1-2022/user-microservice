@@ -6,6 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 	"user-microservice/model"
 )
 
@@ -18,6 +19,7 @@ type UserMongoDBStore struct {
 	users                    *mongo.Collection
 	experiences              *mongo.Collection
 	passwordRecoveryRequests *mongo.Collection
+	passwordlessLogins       *mongo.Collection
 }
 
 func NewUserMongoDBStore(client *mongo.Client) model.UserStore {
@@ -277,4 +279,35 @@ func (store *UserMongoDBStore) DeletePasswordRecoveryRequest(ctx context.Context
 		return err
 	}
 	return nil
+}
+
+func (store *UserMongoDBStore) CreatePasswordlessRequest(ctx context.Context, userId primitive.ObjectID) (string, error) {
+	span := tracer.StartSpanFromContext(ctx, "CreatePasswordlessRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	loginReq := new(model.PasswordlessLogin)
+	loginReq.Id = primitive.NewObjectID()
+	loginReq.UserId = userId.String()
+	loginReq.CreationTime = time.Now()
+
+	_, err := store.passwordlessLogins.InsertOne(ctx, loginReq)
+
+	if err != nil {
+		return "", err
+	}
+	return loginReq.Id.String(), nil
+}
+
+func (store *UserMongoDBStore) GetPasswordlessRequest(ctx context.Context, userId primitive.ObjectID, loginId primitive.ObjectID) (bool, error) {
+	span := tracer.StartSpanFromContext(ctx, "GetPasswordlessRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	filter := bson.M{"_id": loginId, "userId": userId}
+	result := store.passwordlessLogins.FindOne(ctx, filter)
+	if result.Err() != nil {
+		return false, nil
+	}
+	return true, nil
 }
