@@ -274,7 +274,7 @@ func (store *UserMongoDBStore) DeletePasswordRecoveryRequest(ctx context.Context
 	ctx = tracer.ContextWithSpan(ctx, span)
 
 	filter := bson.M{"_id": id}
-	_, err := store.users.DeleteOne(ctx, filter)
+	_, err := store.passwordRecoveryRequests.DeleteOne(ctx, filter)
 	if err != nil {
 		return err
 	}

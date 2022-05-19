@@ -200,6 +200,9 @@ func (service *UserService) RecoverPassword(ctx context.Context, in *userService
 	}
 
 	passwordRecoveryRequest, err := service.store.GetPasswordRecoveryRequest(ctx, recoveryId)
+	if err != nil {
+		return err
+	}
 	now := time.Now()
 	if passwordRecoveryRequest.ValidTo.Before(now) {
 		return errors.New("Recovery link has expired or used already")
