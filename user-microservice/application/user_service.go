@@ -145,6 +145,8 @@ func (service *UserService) Update(ctx context.Context, userId primitive.ObjectI
 	user.Role = existUser.Role
 	user.Username = existUser.Username
 	user.Password = existUser.Password
+	user.Confirmed = existUser.Confirmed
+	user.ConfirmationId = existUser.ConfirmationId
 	return service.store.Update(ctx, userId, user)
 }
 
