@@ -73,7 +73,7 @@ func SendEmailForPasswordlessLogin(ctx context.Context, user *model.User, passwo
 	host := "smtp-mail.outlook.com"
 	port := "587"
 	address := host + ":" + port
-	url := "https://localhost:4200/login/" + user.Id.String() + "/" + passwordlessId
+	url := "https://localhost:4200/login/" + user.Id.Hex() + "/" + passwordlessId
 
 	subject := "Passwordless LOGIN:\n"
 	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"

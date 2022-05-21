@@ -26,10 +26,12 @@ func NewUserMongoDBStore(client *mongo.Client) model.UserStore {
 	users := client.Database(DATABASE).Collection(COLLECTION)
 	experiences := client.Database(DATABASE).Collection("experiences")
 	passwordRecoveryRequests := client.Database(DATABASE).Collection("passwordRecoveryRequests")
+	passwordlessLogins := client.Database(DATABASE).Collection("passwordlessLogins")
 	return &UserMongoDBStore{
 		users:                    users,
 		experiences:              experiences,
 		passwordRecoveryRequests: passwordRecoveryRequests,
+		passwordlessLogins:       passwordlessLogins,
 	}
 }
 
@@ -288,7 +290,7 @@ func (store *UserMongoDBStore) CreatePasswordlessRequest(ctx context.Context, us
 
 	loginReq := new(model.PasswordlessLogin)
 	loginReq.Id = primitive.NewObjectID()
-	loginReq.UserId = userId.String()
+	loginReq.UserId = userId.Hex()
 	loginReq.CreationTime = time.Now()
 
 	_, err := store.passwordlessLogins.InsertOne(ctx, loginReq)
@@ -296,7 +298,7 @@ func (store *UserMongoDBStore) CreatePasswordlessRequest(ctx context.Context, us
 	if err != nil {
 		return "", err
 	}
-	return loginReq.Id.String(), nil
+	return loginReq.Id.Hex(), nil
 }
 
 func (store *UserMongoDBStore) GetPasswordlessRequest(ctx context.Context, userId primitive.ObjectID, loginId primitive.ObjectID) (bool, error) {
