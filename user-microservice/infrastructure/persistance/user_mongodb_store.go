@@ -306,7 +306,7 @@ func (store *UserMongoDBStore) GetPasswordlessRequest(ctx context.Context, userI
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(ctx, span)
 
-	filter := bson.M{"_id": loginId, "userId": userId}
+	filter := bson.M{"_id": loginId}
 	result := store.passwordlessLogins.FindOne(ctx, filter)
 	if result.Err() != nil {
 		return false, nil
