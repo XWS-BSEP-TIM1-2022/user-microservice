@@ -306,7 +306,9 @@ func (store *UserMongoDBStore) GetPasswordlessRequest(ctx context.Context, userI
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(ctx, span)
 
-	filter := bson.M{"_id": loginId}
+	filter := bson.M{"_id": loginId, "creationtime": bson.M{
+		"$gte": primitive.NewDateTimeFromTime(time.Now().Add(-time.Minute * time.Duration(15))),
+	}, "userid": bson.M{"$eq": userId.Hex()}}
 	result := store.passwordlessLogins.FindOne(ctx, filter)
 	if result.Err() != nil {
 		return false, nil
