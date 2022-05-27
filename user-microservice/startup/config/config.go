@@ -8,22 +8,26 @@ import (
 )
 
 type Config struct {
-	Port            string
-	UserDBHost      string
-	UserDBPort      string
-	UserServiceName string
-	ExpiresIn       time.Duration
-	CommonPasswords []string
+	Port                  string
+	UserDBHost            string
+	UserDBPort            string
+	UserServiceName       string
+	ExpiresIn             time.Duration
+	CommonPasswords       []string
+	ConnectionServiceHost string
+	ConnectionServicePort string
 }
 
 func NewConfig() *Config {
 	return &Config{
-		Port:            getEnv("USER_SERVICE_PORT", "8085"),
-		UserDBHost:      getEnv("USER_DB_HOST", "dislinkt:WiYf6BvFmSpJS2Ob@xws.cjx50.mongodb.net/usersDB"),
-		UserDBPort:      getEnv("USER_DB_PORT", ""),
-		UserServiceName: getEnv("USER_SERVICE_NAME", "user_service"),
-		ExpiresIn:       30 * time.Minute,
-		CommonPasswords: getPasswords(),
+		Port:                  getEnv("USER_SERVICE_PORT", "8085"),
+		UserDBHost:            getEnv("USER_DB_HOST", "dislinkt:WiYf6BvFmSpJS2Ob@xws.cjx50.mongodb.net/usersDB"),
+		UserDBPort:            getEnv("USER_DB_PORT", ""),
+		UserServiceName:       getEnv("USER_SERVICE_NAME", "user_service"),
+		ExpiresIn:             30 * time.Minute,
+		CommonPasswords:       getPasswords(),
+		ConnectionServiceHost: getEnv("CONNECTION_SERVICE_HOST", "localhost"),
+		ConnectionServicePort: getEnv("CONNECTION_SERVICE_PORT", "8087"),
 	}
 }
 

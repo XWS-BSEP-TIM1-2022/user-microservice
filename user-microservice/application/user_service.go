@@ -3,8 +3,11 @@ package application
 import (
 	"context"
 	"errors"
+	"fmt"
+	connectionService "github.com/XWS-BSEP-TIM1-2022/dislinkt/util/proto/connection"
 	userService "github.com/XWS-BSEP-TIM1-2022/dislinkt/util/proto/user"
 	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/security"
+	"github.com/XWS-BSEP-TIM1-2022/dislinkt/util/services"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"regexp"
@@ -15,14 +18,16 @@ import (
 )
 
 type UserService struct {
-	store  model.UserStore
-	config *config.Config
+	store            model.UserStore
+	config           *config.Config
+	connectionClient connectionService.ConnectionServiceClient
 }
 
 func NewUserService(store model.UserStore, config *config.Config) *UserService {
 	return &UserService{
-		store:  store,
-		config: config,
+		store:            store,
+		config:           config,
+		connectionClient: services.NewConnectionClient(fmt.Sprintf("%s:%s", config.ConnectionServiceHost, config.ConnectionServicePort)),
 	}
 }
 
@@ -249,5 +254,27 @@ func (service *UserService) recoverUserPassword(ctx context.Context, userId prim
 		return err
 	}
 
+	return nil
+}
+
+func (service *UserService) ChangeProfilePrivacy(ctx context.Context, userId primitive.ObjectID) error {
+	user, err := service.store.Get(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	user.Private = !user.Private
+
+	if !user.Private {
+		_, err = service.connectionClient.ApproveAllConnection(ctx, &connectionService.UserIdRequest{UserId: userId.Hex()})
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = service.Update(ctx, user.Id, user)
+	if err != nil {
+		return err
+	}
 	return nil
 }

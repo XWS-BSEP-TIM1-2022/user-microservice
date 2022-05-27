@@ -544,6 +544,22 @@ func (handler *UserHandler) PasswordlessLogin(ctx context.Context, in *userServi
 	return handler.authService.PasswordlessLogin(ctx, uid, lid)
 }
 
+func (handler *UserHandler) ChangeProfilePrivacy(ctx context.Context, in *userService.UserIdRequest) (*userService.EmptyRequest, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "ChangeProfilePrivacy")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(ctx, span)
+
+	userId, err := primitive.ObjectIDFromHex(in.UserId)
+	if err != nil {
+		return nil, err
+	}
+	err = handler.service.ChangeProfilePrivacy(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	return &userService.EmptyRequest{}, nil
+}
+
 func remove(s []string, r string) []string {
 	for i, v := range s {
 		if v == r {
