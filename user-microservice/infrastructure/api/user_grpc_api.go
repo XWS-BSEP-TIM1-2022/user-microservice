@@ -239,7 +239,7 @@ func (handler *UserHandler) SearchUsersRequest(ctx context.Context, in *userServ
 	defer span.Finish()
 	ctx = tracer.ContextWithSpan(context.Background(), span)
 
-	users, err := handler.service.Search(ctx, in.SearchParam)
+	users, err := handler.service.Search(ctx, in.SearchParam, in.UserId)
 	if err != nil {
 		return nil, err
 	}

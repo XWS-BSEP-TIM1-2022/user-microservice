@@ -172,7 +172,7 @@ func (service *UserService) DeleteAll(ctx context.Context) {
 	service.store.DeleteAll(ctx)
 }
 
-func (service *UserService) Search(ctx context.Context, searchParam string) ([]*model.User, error) {
+func (service *UserService) Search(ctx context.Context, searchParam string, userId string) ([]*model.User, error) {
 	users, err := service.store.GetAllWithoutAdmins(ctx)
 
 	if err != nil {
@@ -182,8 +182,13 @@ func (service *UserService) Search(ctx context.Context, searchParam string) ([]*
 	var retVal []*model.User
 	for _, user := range users {
 		if strings.Contains(strings.ToLower(user.Username), searchParam) || strings.Contains(strings.ToLower(user.Name), searchParam) || strings.Contains(strings.ToLower(user.Surname), searchParam) || strings.Contains(strings.ToLower(user.Email), searchParam) {
-			retVal = append(retVal, user)
+			isBlocked, _ := service.connectionClient.IsBlockedAny(ctx, &connectionService.Block{UserId: userId, BlockUserId: user.Id.Hex()})
+
+			if !isBlocked.Blocked {
+				retVal = append(retVal, user)
+			}
 		}
+
 	}
 	return retVal, nil
 }
