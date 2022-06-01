@@ -182,8 +182,11 @@ func (service *UserService) Search(ctx context.Context, searchParam string, user
 	var retVal []*model.User
 	for _, user := range users {
 		if strings.Contains(strings.ToLower(user.Username), searchParam) || strings.Contains(strings.ToLower(user.Name), searchParam) || strings.Contains(strings.ToLower(user.Surname), searchParam) || strings.Contains(strings.ToLower(user.Email), searchParam) {
-			isBlocked, _ := service.connectionClient.IsBlockedAny(ctx, &connectionService.Block{UserId: userId, BlockUserId: user.Id.Hex()})
+			isBlocked, err := service.connectionClient.IsBlockedAny(ctx, &connectionService.Block{UserId: userId, BlockUserId: user.Id.Hex()})
 
+			if err != nil {
+				return nil, err
+			}
 			if !isBlocked.Blocked {
 				retVal = append(retVal, user)
 			}
