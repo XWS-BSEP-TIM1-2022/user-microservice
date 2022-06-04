@@ -100,6 +100,14 @@ func (service *AuthService) CheckPassword(ctx context.Context, password string, 
 	return false, errors.New("wrong password")
 }
 
+func (service *AuthService) CheckUsername(ctx context.Context, username string) (bool, error) {
+	_, err := service.store.GetByUsername(ctx, username)
+	if err != nil {
+		return true, nil
+	}
+	return false, nil
+}
+
 func (service *AuthService) GetQR2FA(ctx context.Context, userId primitive.ObjectID) ([]byte, error) {
 	user, err := service.store.Get(ctx, userId)
 

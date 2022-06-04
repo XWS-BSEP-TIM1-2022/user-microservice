@@ -313,6 +313,36 @@ func (handler *UserHandler) UpdatePasswordRequest(ctx context.Context, in *userS
 	return nil, err
 }
 
+func (handler *UserHandler) ChangeUsernameRequest(ctx context.Context, in *userService.NewUsernameRequest) (*userService.GetResponse, error) {
+	span := tracer.StartSpanFromContextMetadata(ctx, "ChangeUsernameRequest")
+	defer span.Finish()
+	ctx = tracer.ContextWithSpan(context.Background(), span)
+
+	id := in.GetNewUsername().GetUserId()
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := handler.service.Get(ctx, objectId)
+	if err != nil {
+		return nil, err
+	}
+	good, err := handler.authService.CheckUsername(ctx, in.GetNewUsername().GetUsername())
+	if good {
+		user.Username = in.GetNewUsername().GetUsername()
+		_, err = handler.service.UpdateUsername(ctx, user.Id, user)
+		if err != nil {
+			return nil, err
+		}
+		response := &userService.GetResponse{
+			User: mapUser(user),
+		}
+		return response, nil
+	}
+	return nil, err
+}
+
 func (handler *UserHandler) PostExperienceRequest(ctx context.Context, in *userService.NewExperienceRequest) (*userService.NewExperienceResponse, error) {
 	span := tracer.StartSpanFromContextMetadata(ctx, "PostExperienceRequest")
 	defer span.Finish()

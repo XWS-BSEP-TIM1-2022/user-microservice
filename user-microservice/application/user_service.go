@@ -164,6 +164,15 @@ func (service *UserService) UpdatePassword(ctx context.Context, userId primitive
 	return service.store.Update(ctx, userId, user)
 }
 
+func (service *UserService) UpdateUsername(ctx context.Context, userId primitive.ObjectID, user *model.User) (*model.User, error) {
+	existUser, err := service.store.Get(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+	user.Role = existUser.Role
+	return service.store.Update(ctx, userId, user)
+}
+
 func (service *UserService) Delete(ctx context.Context, id primitive.ObjectID) error {
 	return service.store.Delete(ctx, id)
 }
