@@ -5,11 +5,13 @@ import (
 	"net/smtp"
 	"user-microservice/application/smtp_login"
 	"user-microservice/model"
+	cfg "user-microservice/startup/config"
 )
 
 func SendConfirmationMail(ctx context.Context, user *model.User) error {
-	from := "xwstim1@outlook.com"
-	password := "XWS.tim1"
+	config := cfg.NewConfig()
+	from := config.Email
+	password := config.EmailPassword
 
 	toEmailAddress := user.Email
 	to := []string{toEmailAddress}
@@ -36,8 +38,9 @@ func SendConfirmationMail(ctx context.Context, user *model.User) error {
 }
 
 func SendEmailForPasswordRecovery(ctx context.Context, user *model.User, passwordRecoveryId string) error {
-	from := "xwstim1@outlook.com"
-	password := "XWS.tim1"
+	config := cfg.NewConfig()
+	from := config.Email
+	password := config.EmailPassword
 
 	toEmailAddress := user.Email
 	to := []string{toEmailAddress}
@@ -64,8 +67,9 @@ func SendEmailForPasswordRecovery(ctx context.Context, user *model.User, passwor
 }
 
 func SendEmailForPasswordlessLogin(ctx context.Context, user *model.User, passwordlessId string) error {
-	from := "xwstim1@outlook.com"
-	password := "XWS.tim1"
+	config := cfg.NewConfig()
+	from := config.Email
+	password := config.EmailPassword
 
 	toEmailAddress := user.Email
 	to := []string{toEmailAddress}

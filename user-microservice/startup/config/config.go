@@ -16,6 +16,8 @@ type Config struct {
 	CommonPasswords       []string
 	ConnectionServiceHost string
 	ConnectionServicePort string
+	Email                 string
+	EmailPassword         string
 }
 
 func NewConfig() *Config {
@@ -28,6 +30,8 @@ func NewConfig() *Config {
 		CommonPasswords:       getPasswords(),
 		ConnectionServiceHost: getEnv("CONNECTION_SERVICE_HOST", "localhost"),
 		ConnectionServicePort: getEnv("CONNECTION_SERVICE_PORT", "8087"),
+		Email:                 getEnv("SERVICE_EMAIL", "xwstim1@outlook.com"),
+		EmailPassword:         getEnv("EMAIL_PASSWORD", "XWS.tim1"),
 	}
 }
 
