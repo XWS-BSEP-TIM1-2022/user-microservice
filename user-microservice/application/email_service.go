@@ -38,6 +38,7 @@ func SendConfirmationMail(ctx context.Context, user *model.User) error {
 }
 
 func SendEmailForPasswordRecovery(ctx context.Context, user *model.User, passwordRecoveryId string) error {
+	Log.Info("Starting send email for password recovery for user with id: " + user.Id.Hex())
 	config := cfg.NewConfig()
 	from := config.Email
 	password := config.EmailPassword
@@ -63,10 +64,12 @@ func SendEmailForPasswordRecovery(ctx context.Context, user *model.User, passwor
 		return err
 	}
 
+	Log.Info("Email send successfully for password recovery for user with id: " + user.Id.Hex())
 	return nil
 }
 
 func SendEmailForPasswordlessLogin(ctx context.Context, user *model.User, passwordlessId string) error {
+	Log.Info("Starting send email for passwordless login for user with id: " + user.Id.Hex())
 	config := cfg.NewConfig()
 	from := config.Email
 	password := config.EmailPassword
@@ -91,5 +94,6 @@ func SendEmailForPasswordlessLogin(ctx context.Context, user *model.User, passwo
 		return err
 	}
 
+	Log.Info("Email send successfully for passwordless login for user with id: " + user.Id.Hex())
 	return nil
 }
