@@ -16,7 +16,7 @@ func main() {
 	application.Log = log
 	log.Out = os.Stdout
 
-	path := "gateway.log"
+	path := "user-microservice.log"
 
 	writer, err := rotatelogs.New(
 		path+".%Y%m%d%H%M",
@@ -31,6 +31,8 @@ func main() {
 		log.Info("Failed to log to file, using default stderr")
 	}
 
+	log.Info("Server starting...")
+	
 	config := cfg.NewConfig()
 	server := startup.NewServer(config)
 	server.Start()
