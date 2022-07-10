@@ -56,7 +56,7 @@ func (service *AuthService) Login(ctx context.Context, in *userService.Credentia
 			return &userService.LoginResponse{UserId: user.Id.Hex()}, nil
 		}
 		Log.Info("User with username: " + in.Credentials.Username + " logged in")
-		return &userService.LoginResponse{UserId: user.Id.Hex(), Email: user.Email, Role: string(user.Role), Token: jwtToken, IsPrivate: user.Private}, nil
+		return &userService.LoginResponse{UserId: user.Id.Hex(), Email: user.Email, Role: string(user.Role), Token: jwtToken, IsPrivate: user.Private, Username: user.Username}, nil
 	}
 	return nil, errors.New("wrong username or password")
 }
