@@ -29,6 +29,9 @@ WORKDIR /root/
 # Copy the Pre-built binary file from the previous stage
 COPY --from=builder /app/main .
 
+# Copy certificates
+COPY --from=builder /app/common_passwords.txt ./common_passwords.txt
+
 # Expose port 8000 to the outside world
 EXPOSE 8000
 
